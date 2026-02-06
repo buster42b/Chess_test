@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03ffcf75c37f2f64bb21b2f3851832c9, type: 3}
+  m_Name: ChessPiecesConfig
+  m_EditorClassIdentifier: Assembly-CSharp::ChessPiecesConfig
+  Pieces:
+  - Type: 0
+    Prefab: {fileID: 863769843133504233, guid: 9cd7bd8d8372b294389d1a7c0669ba69, type: 3}
+  - Type: 1
+    Prefab: {fileID: 2270203127827852748, guid: eccc343c257f54a46bbd7d1338ea2559, type: 3}
+  - Type: 2
+    Prefab: {fileID: 729403589407111534, guid: 578f709a411aa0f46bc2eac1ecd4cc85, type: 3}
+  - Type: 3
+    Prefab: {fileID: 2740807558386330565, guid: 3f38255ce2c541f4fa9a98649db537aa, type: 3}
+  - Type: 4
+    Prefab: {fileID: 3932357016489502909, guid: 4e4199a44319e8b4794b02776a389cb9, type: 3}
+  - Type: 5
+    Prefab: {fileID: 2997324746897161517, guid: e531b274e8c24534b839a9625f73d782, type: 3}
