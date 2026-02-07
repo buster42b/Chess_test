@@ -1,9 +1,10 @@
 # =============== #
 # Unity generated #
 # =============== #
-[Aa]ssets/
+[Aa]ssets/[Nn]aughty[Aa]ttributes
+[Aa]ssets/[Pp]lugins
+[Aa]ssets/[Rr]esources
 [Ll]ibrary/
-[Pp]rojectSettings/
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
@@ -45,7 +46,7 @@ Thumbs.db
 # ================================= #
 # Package Manager and UPM packages  #
 # ================================= #
-**/[Pp]ackages/*
+
 **/[Uu]nity/[Pp]ackages/*
 **/[Nn]u[Gg]et/*
 **/[Jj]et[Bb]rains/*
