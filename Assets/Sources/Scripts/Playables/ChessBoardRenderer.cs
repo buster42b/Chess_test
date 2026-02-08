@@ -70,6 +70,17 @@ public class ChessBoardRenderer : MonoBehaviour
         
         return new Vector3(worldX, _playableBounds.center.y, worldZ);
     }
+
+    public Vector3 GetCapturedPieceWorldPosition(IPlayer owner, int indexInRow)
+    {
+        float margin = TileSize * 2.5f;
+        float z = owner.ID == 0 ? _playableMin.z - margin : _playableMax.z + margin;
+        float rowLength = _playableMax.x - _playableMin.x;
+        const int maxPiecesPerSide = 16;
+        float spacing = rowLength / maxPiecesPerSide;
+        float x = _playableMin.x + (indexInRow + 0.5f) * spacing;
+        return new Vector3(x, _playableBounds.center.y, z);
+    }
     
     public Vector2Int GetTileAtWorldPosition(Vector3 worldPosition)
     {

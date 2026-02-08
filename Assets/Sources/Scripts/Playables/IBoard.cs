@@ -13,4 +13,6 @@ public interface IBoard
     bool IsMoveLegal(IPiece piece, Vector2Int target);
     void ApplyMove(IPiece piece, Vector2Int target);
     void InitPlayers(int numPlayers);
+    bool IsValidTilePosition(Vector2Int vector);
+    Vector2Int GetTileTileOnBoard(Vector3 worldPosition);
 }
