@@ -52,6 +52,20 @@ public class ChessMoveExecutor
         if (targetPosition == piece.Position)
             return MoveResult.Failed("Фигура уже на этой клетке");
 
+        // Check if move follows chess rules for this piece type
+        bool isValidChessMove = false;
+        foreach (var availableMove in piece.GetAvailableMoves(board))
+        {
+            if (availableMove == targetPosition)
+            {
+                isValidChessMove = true;
+                break;
+            }
+        }
+
+        if (!isValidChessMove)
+            return MoveResult.Failed("Недопустимый ход для этой фигуры");
+
         var targetTile = board.GetTile(targetPosition);
 
         if (!targetTile.IsEmpty && targetTile.GetOccupiedPiece().Owner == piece.Owner)

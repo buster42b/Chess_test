@@ -27,11 +27,6 @@ public class ChessInstaller : MonoInstaller
             Container.Resolve<PieceSetupController>(),
             Container.Resolve<ChessGameController>());
 
-        Container.Bind<ChessSaveLoadService>()
-            .FromNewComponentOnNewGameObject()
-            .AsSingle();
-        Container.Bind<IInitializable>().To<ChessSaveLoadService>().FromResolve();
-
         if (uiPrefab)
         {
             var uiManager = Container.InstantiatePrefabForComponent<ChessUIManager>(uiPrefab);
@@ -42,6 +37,10 @@ public class ChessInstaller : MonoInstaller
 
             Container.Bind<IInitializable>().To<ChessUIManager>().FromInstance(uiManager);
         }
+        Container.Bind<ChessSaveLoadService>()
+            .FromNewComponentOnNewGameObject()
+            .AsSingle();
+        Container.Bind<IInitializable>().To<ChessSaveLoadService>().FromResolve();
         
         Container.Bind<ChessPieceFactory>()
             .AsSingle()

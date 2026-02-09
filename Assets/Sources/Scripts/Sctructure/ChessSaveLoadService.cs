@@ -131,6 +131,7 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         string message = "";
         string actionButtonText = "";
         int isRestartMode = 0;
+        
         if (_uiManager != null)
         {
             message = _uiManager.GetMessage();
