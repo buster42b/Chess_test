@@ -7,7 +7,7 @@ public class ChessInstaller : MonoInstaller
     [SerializeField] private ChessPiecesConfig piecesConfig;
     [SerializeField] private ChessUIManager uiPrefab;
     [SerializeField] private ChessClickHandler sceneInteractionHandler;
-    [SerializeField] private PawnPromotionUI promotionUIPrefab;
+    [SerializeField] private PromotionUIManager promotionUIPrefab;
 
     public override void InstallBindings()
     {
@@ -22,17 +22,6 @@ public class ChessInstaller : MonoInstaller
         Container.Bind<PieceSetupController>().AsSingle();
         Container.Bind<ChessGameController>().AsSingle();
         Container.Bind<ChessClickHandler>().AsSingle();
-        Container.Bind<PawnPromotionManager>().AsSingle();
-
-        if (promotionUIPrefab != null)
-        {
-            Container.Bind<PawnPromotionUI>().FromInstance(promotionUIPrefab).AsSingle();
-        }
-
-        Container.Resolve<ChessBoard>().SetDependencies(
-            Container.Resolve<ChessMoveExecutor>(),
-            Container.Resolve<PieceSetupController>(),
-            Container.Resolve<ChessGameController>());
 
         if (uiPrefab)
         {
@@ -52,5 +41,18 @@ public class ChessInstaller : MonoInstaller
         Container.Bind<ChessPieceFactory>()
             .AsSingle()
             .WithArguments(piecesConfig);
+
+        if (promotionUIPrefab)
+        {
+            var promotionUI = Container.InstantiatePrefabForComponent<PromotionUIManager>(promotionUIPrefab);
+            Container.Bind<PromotionUIManager>()
+                .FromInstance(promotionUI)
+                .AsSingle();
+        }
+
+        Container.Resolve<ChessBoard>().SetDependencies(
+            Container.Resolve<ChessMoveExecutor>(),
+            Container.Resolve<PieceSetupController>(),
+            Container.Resolve<ChessGameController>());
     } 
 }

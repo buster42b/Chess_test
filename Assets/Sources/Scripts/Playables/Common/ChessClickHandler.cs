@@ -12,7 +12,6 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
     private InputAction _clickAction;
     private IBoard _chessBoard;
     private PieceSetupController _setupController;
-    private PawnPromotionManager _promotionManager;
     private IPiece _selectedPiece = null;
     private bool _hasSelection = false;
 
@@ -27,11 +26,6 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         _clickAction.AddBinding("<Mouse>/leftButton");
         _clickAction.performed += OnSelection;
         _clickAction.Enable();
-    }
-
-    public void SetPromotionManager(PawnPromotionManager promotionManager)
-    {
-        _promotionManager = promotionManager;
     }
 
     public void SetSetupController(PieceSetupController setupController)
@@ -142,32 +136,20 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         if (result.IsSuccess)
         {
             ClearSelection();
- 
-            if (result.RequiresPromotion && _promotionManager != null)
-            {
-                if (result.PawnToPromote is Pawn pawn)
-                {
-                    _promotionManager.TryStartPromotion(pawn);
-                    _promotionManager.OnPromotionCompleted += () => {
-                        if (!_chessBoard.IsGameOver && !result.WasKingCaptured)
-                            SwitchToNextPlayer();
-                    };
-                    return;
-                }
-            }
- 
-            if (!_chessBoard.IsGameOver && !result.WasKingCaptured)
+
+            // Only switch to next player if promotion is not required
+            if (!_chessBoard.IsGameOver && !result.WasKingCaptured && !result.RequiresPromotion)
                 SwitchToNextPlayer();
         }
         else
         {
             InteractionMessage.Value = result.Message;
- 
+
             ClearSelection();
         }
     }
  
-    private void SwitchToNextPlayer()
+    public void SwitchToNextPlayer()
     {
         if (_chessBoard == null || _chessBoard.Players.Count == 0) return;
  

@@ -23,7 +23,6 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
 
     [Inject] private DiContainer _container;
     [Inject] private IInteractionHandler _clickHandler;
-    [Inject] private PawnPromotionManager _promotionManager;
 
     private ChessMoveExecutor _moveExecutor;
     private PieceSetupController _setupController;
@@ -53,9 +52,6 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
         {
             if (_setupController != null)
                 chessClickHandler.SetSetupController(_setupController);
-            
-            if (_promotionManager != null)
-                chessClickHandler.SetPromotionManager(_promotionManager);
         }
         _boardRenderer?.Initialize(this);
     }

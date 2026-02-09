@@ -200,6 +200,7 @@ MonoBehaviour:
   piecesConfig: {fileID: 11400000, guid: 01b828d7bd2a4c34a89623e01eea730d, type: 2}
   uiPrefab: {fileID: 3741855809726006469, guid: 035bc6ba5f6513b41a98efc1925539d7, type: 3}
   sceneInteractionHandler: {fileID: 1440077862}
+  promotionUIPrefab: {fileID: 2151759074203979331, guid: c057261a08747d24582dc62ce16ca222, type: 3}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Zenject;
 
 public class Pawn : ChessPiece
 {
     private int Direction => (int)Owner.VirtualDirection.z;
     private Vector2Int StartingPosition { get; set; }
     private bool HasMoved => Position != StartingPosition;
+    
+    public bool CanPromote => Direction == 1 ? Position.y == 7 : Position.y == 0;
 
     public override void Init(PieceType type, Vector2Int position, IPlayer owner)
     {
@@ -14,14 +17,7 @@ public class Pawn : ChessPiece
         StartingPosition = position;
     }
 
-    public bool CanPromote(IBoard board)
-    {
-        if (board == null) return false;
-        
-        int promotionRank = Direction == 1 ? board.Height - 1 : 0;
-        return Position.y == promotionRank;
-    }
-
+    
     public override IEnumerable<Vector2Int> GetAvailableMoves(IBoard board)
     {
         Vector2Int forwardPos = Position + new Vector2Int(0, Direction);
