@@ -51,7 +51,7 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
             return;
         }
 
-        _setupController.StartSetupPhase();
+        _setupController.SetupStandardPieces();
     }
 
     public void Save()

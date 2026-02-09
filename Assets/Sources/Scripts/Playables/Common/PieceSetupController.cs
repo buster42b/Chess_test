@@ -60,8 +60,8 @@ public class PieceSetupController
         if (_playerPieceParents.Count == 0)
             InitializePieceParents();
 
-        SetupMessage.Value = "Расставьте фигуры на доске. Кликайте по клетке.";
-        StartCurrentPlayerSetup();
+        SetupMessage.Value = "Автоматическая расстановка фигур...";
+        SetupStandardPieces();
     }
 
     private void StartCurrentPlayerSetup()
@@ -221,60 +221,157 @@ public class PieceSetupController
 
     public void SetupRandomPieces()
     {
+        SetupStandardPieces();
+    }
+
+    public void SetupStandardPieces()
+    {
         if (_isSetupPhase)
             FinishSetupPhase();
 
-        List<IPiece> piecesToPlace = new List<IPiece>();
+        ResetBoardForSetup();
 
-        foreach (var player in _board.Players)
+        if (_board.Players.Count < 2)
         {
-            foreach (var piece in player.Pieces)
-            {
-                if (!IsPiecePlacedOnBoard(piece))
-                    piecesToPlace.Add(piece);
-            }
-        }
-
-        if (piecesToPlace.Count == 0)
+            Debug.LogWarning("Need at least 2 players for standard chess setup");
             return;
+        }
+
+        // Player 0 (White, faces Vector3.back) - top of board (rows 6 and 7)
+        int backRow = _board.Height - 1;
+        int pawnRow = _board.Height - 2;
+        SetupPlayerPieces(_board.Players[0], pawnRow, backRow);
         
-        List<Vector2Int> freeTiles = new List<Vector2Int>();
-
-        for (int x = 0; x < _board.Width; x++)
-        {
-            for (int y = 0; y < _board.Height; y++)
-            {
-                var tile = _board.Tiles[x, y];
-                if (tile.IsEmpty)
-                    freeTiles.Add(new Vector2Int(x, y));
-            }
-        }
-
-        if (freeTiles.Count < piecesToPlace.Count)
-        {
-            if (freeTiles.Count == 0) return;
-            piecesToPlace = piecesToPlace.GetRange(0, Mathf.Min(piecesToPlace.Count, freeTiles.Count));
-        }
-
-        var random = new System.Random();
-        ShuffleList(piecesToPlace, random);
-        ShuffleList(freeTiles, random);
-
-        int placedCount = 0;
-        for (int i = 0; i < piecesToPlace.Count; i++)
-        {
-            if (i < freeTiles.Count)
-            {
-                var piece = piecesToPlace[i];
-                var tilePos = freeTiles[i];
-
-                if (PlacePieceOnTile(piece, tilePos))
-                    placedCount++;
-            }
-        }
+        // Player 1 (Black, faces Vector3.forward) - bottom of board (rows 0 and 1)
+        SetupPlayerPieces(_board.Players[1], 1, 0);
 
         if (AreAllPiecesPlaced())
             EndSetupPhase();
+    }
+
+    private void ResetBoardForSetup()
+    {
+        foreach (var tile in _board.TilesList)
+            tile.OccupiedBy.Value = null;
+
+        foreach (var player in _board.Players)
+        {
+            _playerPieceIndex[player] = 0;
+
+            int indexInRow = 0;
+            foreach (var piece in player.Pieces)
+            {
+                if (piece is not ChessPiece chessPiece) continue;
+                
+                if (_playerPieceParents.TryGetValue(player, out var parentTransform))
+                {
+                    chessPiece.transform.SetParent(parentTransform);
+                    chessPiece.transform.rotation = Quaternion.LookRotation(player.VirtualDirection);
+                    chessPiece.transform.localPosition = new Vector3(indexInRow * 1.0f, 0f, 0f);
+                }
+                
+                chessPiece.SetPosition(new Vector2Int(-1, -1));
+                indexInRow++;
+            }
+        }
+
+        _totalPlacedPieces = 0;
+    }
+
+    private void SetupPlayerPieces(IPlayer player, int pawnRow, int backRow)
+    {
+        var piecesByType = new Dictionary<PieceType, List<IPiece>>();
+        
+        // Group pieces by type
+        foreach (var piece in player.Pieces)
+        {
+            if (!piecesByType.ContainsKey(piece.Type))
+                piecesByType[piece.Type] = new List<IPiece>();
+            piecesByType[piece.Type].Add(piece);
+        }
+
+        // Place pawns
+        if (piecesByType.ContainsKey(PieceType.Pawn))
+        {
+            var pawns = piecesByType[PieceType.Pawn];
+            for (int i = 0; i < Mathf.Min(pawns.Count, _board.Width); i++)
+            {
+                PlacePieceOnTile(pawns[i], new Vector2Int(i, pawnRow));
+            }
+        }
+
+        // Place back row pieces in standard chess order
+        if (_board.Width >= 8)
+        {
+            int boardWidth = _board.Width;
+            
+            // Rooks
+            if (piecesByType.ContainsKey(PieceType.Rook) && piecesByType[PieceType.Rook].Count >= 2)
+            {
+                PlacePieceOnTile(piecesByType[PieceType.Rook][0], new Vector2Int(0, backRow));
+                PlacePieceOnTile(piecesByType[PieceType.Rook][1], new Vector2Int(boardWidth - 1, backRow));
+            }
+            
+            // Knights
+            if (piecesByType.ContainsKey(PieceType.Knight) && piecesByType[PieceType.Knight].Count >= 2)
+            {
+                PlacePieceOnTile(piecesByType[PieceType.Knight][0], new Vector2Int(1, backRow));
+                PlacePieceOnTile(piecesByType[PieceType.Knight][1], new Vector2Int(boardWidth - 2, backRow));
+            }
+            
+            // Bishops
+            if (piecesByType.ContainsKey(PieceType.Bishop) && piecesByType[PieceType.Bishop].Count >= 2)
+            {
+                PlacePieceOnTile(piecesByType[PieceType.Bishop][0], new Vector2Int(2, backRow));
+                PlacePieceOnTile(piecesByType[PieceType.Bishop][1], new Vector2Int(boardWidth - 3, backRow));
+            }
+            
+            // Queen and King - properly mirrored based on which player
+            if (backRow == _board.Height - 1) // White player (top)
+            {
+                // White: Queen on d-file (3), King on e-file (4)
+                if (piecesByType.ContainsKey(PieceType.Queen) && piecesByType[PieceType.Queen].Count >= 1)
+                {
+                    PlacePieceOnTile(piecesByType[PieceType.Queen][0], new Vector2Int(3, backRow));
+                }
+                
+                if (piecesByType.ContainsKey(PieceType.King) && piecesByType[PieceType.King].Count >= 1)
+                {
+                    PlacePieceOnTile(piecesByType[PieceType.King][0], new Vector2Int(4, backRow));
+                }
+            }
+            else // Black player (bottom)
+            {
+                // Black: King on d-file (3), Queen on e-file (4) - mirrored from white
+                if (piecesByType.ContainsKey(PieceType.King) && piecesByType[PieceType.King].Count >= 1)
+                {
+                    PlacePieceOnTile(piecesByType[PieceType.King][0], new Vector2Int(3, backRow));
+                }
+                
+                if (piecesByType.ContainsKey(PieceType.Queen) && piecesByType[PieceType.Queen].Count >= 1)
+                {
+                    PlacePieceOnTile(piecesByType[PieceType.Queen][0], new Vector2Int(4, backRow));
+                }
+            }
+        }
+        else
+        {
+            // For smaller boards, place pieces in a simple line
+            int col = 0;
+            var pieceOrder = new List<PieceType> { PieceType.Rook, PieceType.Knight, PieceType.Bishop, PieceType.Queen, PieceType.King, PieceType.Bishop, PieceType.Knight, PieceType.Rook };
+            
+            foreach (var pieceType in pieceOrder)
+            {
+                if (col >= _board.Width) break;
+                
+                if (piecesByType.ContainsKey(pieceType) && piecesByType[pieceType].Count > 0)
+                {
+                    PlacePieceOnTile(piecesByType[pieceType][0], new Vector2Int(col, backRow));
+                    piecesByType[pieceType].RemoveAt(0);
+                    col++;
+                }
+            }
+        }
     }
 
     private bool IsPiecePlacedOnBoard(IPiece piece)
@@ -323,7 +420,17 @@ public class PieceSetupController
         if (!tile.IsEmpty) return false;
 
         if (piece is not ChessPiece chessPiece) return false;
-        chessPiece.SetPosition(tilePos);
+        
+        // For pawns, ensure the starting position is properly set
+        if (chessPiece is Pawn pawn)
+        {
+            pawn.Init(piece.Type, tilePos, piece.Owner);
+        }
+        else
+        {
+            chessPiece.SetPosition(tilePos);
+        }
+        
         chessPiece.transform.position = _board.GetTileWorldPosition(tilePos);
         tile.OccupiedBy.Value = piece;
         return true;

@@ -1,4 +1,4 @@
-using TMPro;
+п»їusing TMPro;
 using System;
 using UnityEngine.UI;
 using Zenject;
@@ -11,7 +11,7 @@ public class ChessUIManager : MonoBehaviour, IInitializable
     [SerializeField] private Color defaultIndicatorColor = Color.white;
     [SerializeField] private Button actionButton;
     [SerializeField] private TMP_Text actionButtonText;
-    [SerializeField] private string defaultActionText = "Расставить случайно";
+    [SerializeField] private string defaultActionText = "РќР°С‡Р°С‚СЊ Р·Р°РЅРѕРІРѕ";
     [SerializeField] private TMP_Text messageText;
     [SerializeField] private Button exitButton;
 
@@ -41,23 +41,9 @@ public class ChessUIManager : MonoBehaviour, IInitializable
                 messageText.text = message;
         });
 
-        _setupController.IsRestartMode.Subscribe(isRestart => {
-            if (isRestart)
-                SetActionButton("Начать сначала", OnRestartClicked);
-            else
-                SetActionButton("Расставить случайно", OnRandomSetupClicked);
-        });
-
         _gameController.GameMessage.Subscribe(message => {
             if (messageText)
                 messageText.text = message;
-        });
-
-        _gameController.IsRestartMode.Subscribe(isRestart => {
-            if (isRestart)
-                SetActionButton("Начать сначала", OnRestartClicked);
-            else
-                SetActionButton("Расставить случайно", OnRandomSetupClicked);
         });
 
         _clickHandler.InteractionMessage.Subscribe(message => {
@@ -73,7 +59,7 @@ public class ChessUIManager : MonoBehaviour, IInitializable
         if (actionButton)
         {
             actionButton.onClick.RemoveAllListeners();
-            SetActionButton(defaultActionText, OnRandomSetupClicked);
+            SetActionButton(defaultActionText, OnRestartClicked);
         }
 
         if (exitButton)
@@ -102,12 +88,8 @@ public class ChessUIManager : MonoBehaviour, IInitializable
 
     public void ApplySavedUIState(string message, string savedActionButtonText, bool isRestartMode)
     {
-        _isGameStarted = isRestartMode;
-        
-        if (isRestartMode)
-            SetActionButton("Начать сначала", OnRestartClicked);
-        else
-            SetActionButton("Расставить случайно", OnRandomSetupClicked);
+        _isGameStarted = true;
+        SetActionButton("РќР°С‡Р°С‚СЊ Р·Р°РЅРѕРІРѕ", OnRestartClicked);
 
         if (!string.IsNullOrEmpty(savedActionButtonText))
             SetActionButtonTextOnly(savedActionButtonText);
@@ -154,14 +136,8 @@ public class ChessUIManager : MonoBehaviour, IInitializable
 
     public void SwitchToRestartMode()
     {
-        SetActionButton("Начать сначала", OnRestartClicked);
+        SetActionButton("РќР°С‡Р°С‚СЊ Р·Р°РЅРѕРІРѕ", OnRestartClicked);
         _isGameStarted = true;
-    }
-
-    public void SwitchToSetupMode()
-    {
-        SetActionButton("Расставить случайно", OnRandomSetupClicked);
-        _isGameStarted = false;
     }
 
     public void QuitApplication()
@@ -174,24 +150,12 @@ public class ChessUIManager : MonoBehaviour, IInitializable
 #endif
     }
 
-    private void OnRandomSetupClicked()
-    {
-        if (chessBoard)
-        {
-            chessBoard.SetupRandomPieces();
-            SwitchToRestartMode();
-
-            if (chessBoard.CurrentPlayer.Value != null)
-                UpdatePlayerIndicator(chessBoard.CurrentPlayer.Value);
-        }
-    }
-
     private void OnRestartClicked()
     {
         if (!chessBoard) return;
 
         chessBoard.StartNewGame();
-        SwitchToSetupMode();
+        SwitchToRestartMode();
     }
 
     public void SetUIVisible(bool visible)
