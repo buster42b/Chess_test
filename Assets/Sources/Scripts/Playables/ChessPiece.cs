@@ -4,6 +4,7 @@ using Zenject;
 
 public class ChessPiece : MonoBehaviour, IPiece
 {
+    public Transform pieceTransform { get => transform;}
     private bool _isDead;
     public bool IsDead => _isDead;
     public Vector2Int Position { get; private set; }

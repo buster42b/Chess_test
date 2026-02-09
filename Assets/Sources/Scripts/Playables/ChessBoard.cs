@@ -49,8 +49,6 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
 
         _clickHandler?.Initialize(this);
         _boardRenderer?.Initialize(this);
-
-        // Setup phase is started by ChessSaveLoadService after trying to load a save.
     }
 
     public void InitPlayers(int numPlayers)
@@ -95,18 +93,6 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
         }
     }
 
-    public void HandleTileClick(Vector3 worldPosition)
-    {
-        if (_boardRenderer == null) return;
-
-        Vector2Int tilePos = GetTileTileOnBoard(worldPosition);
-        if (!IsValidTilePosition(tilePos)) return;
-
-        ITile clickedTile = Tiles[tilePos.x, tilePos.y];
-        OnTileClicked?.Invoke(tilePos, clickedTile);
-        _boardRenderer?.HighlightTile(tilePos);
-    }
-
     public void HandleTileClick(Vector2Int tilePos)
     {
         if (_boardRenderer == null) return;
@@ -123,14 +109,22 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
                position.y >= 0 && position.y < Height;
     }
 
+    public ITile GetTile(Vector2Int position)
+    {
+        if (!IsValidTilePosition(position))
+            return null;
+        
+        return Tiles[position.x, position.y];
+    }
+
     public Vector3 GetTileWorldPosition(Vector2Int tilePosition)
     {
         return _boardRenderer.TileToWorldPosition(tilePosition);
     }
 
-    public Vector3 GetCapturedPieceWorldPosition(IPlayer owner, int indexInRow)
+    public Vector3 GetPieceWorldPosition(IPlayer owner, int indexInRow)
     {
-        return _boardRenderer != null ? _boardRenderer.GetCapturedPieceWorldPosition(owner, indexInRow) : transform.position;
+        return _boardRenderer != null ? _boardRenderer.GetPieceWorldPosition(owner, indexInRow) : transform.position;
     }
 
     public Vector2Int GetTileTileOnBoard(Vector3 worldPosition)
@@ -153,9 +147,6 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
         return _moveExecutor.TryMovePiece(this, piece, targetPosition, _gameController.OnKingCaptured);
     }
 
-    public void StartSetupPhase() => _setupController.StartSetupPhase();
-    public void FinishSetupPhase() => _setupController.FinishSetupPhase();
-    public void ResetSetupPhase() => _setupController.ResetSetupPhase();
     public void SetupRandomPieces() => _setupController.SetupRandomPieces();
     public void StartNewGame() => _gameController.StartNewGame();
 }

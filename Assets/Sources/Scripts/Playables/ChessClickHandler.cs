@@ -1,3 +1,4 @@
+using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
@@ -13,7 +14,8 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
     private IPiece _selectedPiece = null;
     private bool _hasSelection = false;
 
-    [InjectOptional] private ChessUIManager _uiManager;
+    public ReactiveProperty<string> InteractionMessage { get; } = new ("");
+    public ReactiveProperty<Color> PlayerIndicatorColor { get; } = new ();
 
     public void Initialize(ChessBoard board)
     {
@@ -84,9 +86,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
             if (_chessBoard.CurrentPlayer.Value == null ||
                 piece.Owner != _chessBoard.CurrentPlayer.Value)
             {
-                Debug.Log($"Не ваш ход! Ходит игрок {_chessBoard.CurrentPlayer.Value?.ID + 1}");
-                if (_uiManager != null)
-                    _uiManager.UpdateMessage("Не ваш ход! Выберите свою фигуру.");
+                InteractionMessage.Value = "Не ваш ход! Выберите свою фигуру.";
                 return;
             }
 
@@ -114,9 +114,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         _selectedPiece = piece;
         _hasSelection = true;
 
-        Debug.Log($"<color=green>Выбрана фигура:</color> {piece.Type} на {piece.Position}");
-        if (_uiManager != null)
-            _uiManager.UpdateMessage($"Выбрана фигура: {piece.Type} на {piece.Position}");
+        InteractionMessage.Value = $"Выбрана фигура: {piece.Type} на {piece.Position}";
 
         HighlightPiece(piece, true);
     }
@@ -129,21 +127,14 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
 
         if (result.IsSuccess)
         {
-            //TODO move pieces
-            Debug.Log($"<color=green>Ход успешен:</color> {result.Message}");
-
             ClearSelection();
 
-            if (!_chessBoard.IsGameOver && result.Message != "Король захвачен!")
-            {
+            if (!_chessBoard.IsGameOver && !result.WasKingCaptured)
                 SwitchToNextPlayer();
-            }
         }
         else
         {
-            Debug.Log($"<color=red>Ход не удался:</color> {result.Message}");
-            if (_uiManager != null)
-                _uiManager.UpdateMessage(result.Message);
+            InteractionMessage.Value = result.Message;
 
             ClearSelection();
         }
@@ -156,8 +147,6 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         int currentIndex = _chessBoard.CurrentPlayer.Value?.ID ?? 0;
         int nextIndex = (currentIndex + 1) % _chessBoard.Players.Count;
         _chessBoard.CurrentPlayer.Value = _chessBoard.Players[nextIndex];
-
-        Debug.Log($"<color=yellow>Ход перешел к игроку {nextIndex + 1}</color>");
 
         UpdateUI();
     }
@@ -182,15 +171,13 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
 
         _selectedPiece = null;
         _hasSelection = false;
-        Debug.Log("Выбор очищен");
     }
 
     public void SetEnabled(bool enabled) => this.enabled = enabled;
 
     private void UpdateUI()
     {
-        if (_uiManager != null && _chessBoard != null && _chessBoard.CurrentPlayer.Value != null)
-            _uiManager.UpdatePlayerIndicator(_chessBoard.CurrentPlayer.Value);
+        PlayerIndicatorColor.Value = _chessBoard.CurrentPlayer.Value.Color;
     }
 
     void OnDestroy()

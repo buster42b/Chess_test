@@ -8,4 +8,6 @@ public interface ITile
     ReactiveProperty<IPiece> OccupiedBy { get; }
     bool IsEmpty { get; }
     bool IsWalkable { get; }
+    IPiece GetOccupiedPiece();
+    void SetOccupiedPiece(IPiece piece);
 }

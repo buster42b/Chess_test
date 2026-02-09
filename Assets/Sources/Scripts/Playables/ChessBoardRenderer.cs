@@ -71,7 +71,7 @@ public class ChessBoardRenderer : MonoBehaviour
         return new Vector3(worldX, _playableBounds.center.y, worldZ);
     }
 
-    public Vector3 GetCapturedPieceWorldPosition(IPlayer owner, int indexInRow)
+    public Vector3 GetPieceWorldPosition(IPlayer owner, int indexInRow)
     {
         float margin = TileSize * 2.5f;
         float z = owner.ID == 0 ? _playableMin.z - margin : _playableMax.z + margin;

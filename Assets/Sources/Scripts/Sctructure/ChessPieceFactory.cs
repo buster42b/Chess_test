@@ -36,11 +36,10 @@ public class ChessPieceFactory
             return null;
         }
     
-        var pieceObj = Object.Instantiate(prefab, playerVirtualPosition);
-        var piece = pieceObj.GetComponent<ChessPiece>();
+        var piece = Object.Instantiate(prefab, playerVirtualPosition);
     
-        pieceObj.transform.rotation = Quaternion.LookRotation(owner.VirtualDirection);
-        pieceObj.transform.localPosition = new Vector3(indexInRow * PieceRowSpacing, 0f, 0f);
+        piece.transform.rotation = Quaternion.LookRotation(owner.VirtualDirection);
+        piece.transform.localPosition = new Vector3(indexInRow * PieceRowSpacing, 0f, 0f);
     
         piece.Init(type, position, owner);
         return piece;
@@ -53,6 +52,12 @@ public class ChessPieceFactory
     
         virtualPosition.rotation = Quaternion.LookRotation(owner.VirtualDirection);
         virtualPosition.position -= owner.VirtualDirection * 10;
+        
+        // Cache the parent transform in the player for reuse
+        if (owner is Player player)
+        {
+            player.VirtualPosition = virtualPosition;
+        }
     
         int indexInRow = 0;
         foreach (var set in _config.Pieces)

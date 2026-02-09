@@ -1,3 +1,5 @@
+using System.Linq;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
@@ -5,23 +7,21 @@ public class ChessGameController
 {
     private readonly ChessBoard _board;
     private readonly PieceSetupController _setupController;
-    private readonly ChessUIManager _uiManager;
     private readonly IInteractionHandler _interactionHandler;
 
+    public ReactiveProperty<string> GameMessage { get; } = new ("");
+    public ReactiveProperty<bool> IsRestartMode { get; } = new (false);
+
     public ChessGameController(ChessBoard board, PieceSetupController setupController,
-        [InjectOptional] ChessUIManager uiManager,
         [InjectOptional] IInteractionHandler interactionHandler)
     {
         _board = board;
         _setupController = setupController;
-        _uiManager = uiManager;
         _interactionHandler = interactionHandler;
     }
 
     public void StartNewGame()
     {
-        Debug.Log("=== НАЧАЛО НОВОЙ ИГРЫ ===");
-
         _board.SetGameOver(false);
         EnableAllPieces();
 
@@ -51,23 +51,12 @@ public class ChessGameController
     public void OnKingCaptured(IPlayer defeatedPlayer)
     {
         _board.SetGameOver(true);
-        Debug.Log($"<color=red>КОРОЛЬ ИГРОКА {defeatedPlayer.ID + 1} ЗАХВАЧЕН! ИГРА ОКОНЧЕНА.</color>");
 
-        IPlayer winner = null;
-        foreach (var player in _board.Players)
-        {
-            if (player != defeatedPlayer)
-            {
-                winner = player;
-                Debug.Log($"<color=green>Игрок {player.ID + 1} победил!</color>");
-                break;
-            }
-        }
+        IPlayer winner = _board.Players.FirstOrDefault(player => player != defeatedPlayer);
 
-        if (_uiManager != null)
-            _uiManager.UpdateMessage(winner != null
+        GameMessage.Value = winner != null
                 ? $"Игра окончена! Король захвачен. Победил игрок {winner.ID + 1}."
-                : "Игра окончена! Король захвачен.");
+                : "Игра окончена! Король захвачен.";
 
         LockAllPieces();
     }
@@ -84,11 +73,7 @@ public class ChessGameController
 
     private void UpdateUIForNewGame()
     {
-        if (_uiManager != null)
-        {
-            _uiManager.SwitchToSetupMode();
-            _uiManager.UpdateMessage("Кликайте по клеткам чтобы расставить фигуры");
-            _uiManager.RefreshUI();
-        }
+        IsRestartMode.Value = false;
+        GameMessage.Value = "Кликайте по клеткам чтобы расставить фигуры";
     }
 }

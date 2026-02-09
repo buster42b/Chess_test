@@ -1,9 +1,9 @@
-using UnityEngine;
 using TMPro;
 using System;
 using UnityEngine.UI;
 using Zenject;
 using UniRx;
+using UnityEngine;
 
 public class ChessUIManager : MonoBehaviour, IInitializable
 {
@@ -17,10 +17,12 @@ public class ChessUIManager : MonoBehaviour, IInitializable
 
     [Inject] private ChessBoard chessBoard;
     [InjectOptional] private ChessSaveLoadService _saveLoadService;
+    [Inject] private PieceSetupController _setupController;
+    [Inject] private ChessGameController _gameController;
+    [Inject] private IInteractionHandler _clickHandler;
 
     private Action _currentAction;
     private bool _isGameStarted = false;
-
 
     public void Initialize()
     {
@@ -34,10 +36,43 @@ public class ChessUIManager : MonoBehaviour, IInitializable
             });
         }
 
+        _setupController.SetupMessage.Subscribe(message => {
+            if (messageText)
+                messageText.text = message;
+        });
+
+        _setupController.IsRestartMode.Subscribe(isRestart => {
+            if (isRestart)
+                SetActionButton("Начать сначала", OnRestartClicked);
+            else
+                SetActionButton("Расставить случайно", OnRandomSetupClicked);
+        });
+
+        _gameController.GameMessage.Subscribe(message => {
+            if (messageText)
+                messageText.text = message;
+        });
+
+        _gameController.IsRestartMode.Subscribe(isRestart => {
+            if (isRestart)
+                SetActionButton("Начать сначала", OnRestartClicked);
+            else
+                SetActionButton("Расставить случайно", OnRandomSetupClicked);
+        });
+
+        _clickHandler.InteractionMessage.Subscribe(message => {
+            if (messageText)
+                messageText.text = message;
+        });
+
+        chessBoard.CurrentPlayer.Subscribe(player => {
+            if (playerIndicator)
+                playerIndicator.color = player.Color;
+        });
+
         if (actionButton)
         {
             actionButton.onClick.RemoveAllListeners();
-
             SetActionButton(defaultActionText, OnRandomSetupClicked);
         }
 
@@ -46,9 +81,6 @@ public class ChessUIManager : MonoBehaviour, IInitializable
             exitButton.onClick.RemoveAllListeners();
             exitButton.onClick.AddListener(QuitApplication);
         }
-
-        if (messageText)
-            messageText.text = "";
     }
 
     public void UpdateMessage(string message)
@@ -58,30 +90,29 @@ public class ChessUIManager : MonoBehaviour, IInitializable
     }
 
     public string GetMessage() => messageText != null ? messageText.text : "";
-
+    
     public string GetActionButtonText() => actionButtonText != null ? actionButtonText.text : "";
-
+    
     public bool GetIsRestartMode() => _isGameStarted;
-
+    
     public void SetActionButtonTextOnly(string text)
     {
         if (actionButtonText) actionButtonText.text = text;
     }
 
-    /// <summary>
-    /// Restore message, action button text and listener (mode) from save.
-    /// </summary>
     public void ApplySavedUIState(string message, string savedActionButtonText, bool isRestartMode)
     {
         _isGameStarted = isRestartMode;
+        
         if (isRestartMode)
             SetActionButton("Начать сначала", OnRestartClicked);
         else
             SetActionButton("Расставить случайно", OnRandomSetupClicked);
+
         if (!string.IsNullOrEmpty(savedActionButtonText))
             SetActionButtonTextOnly(savedActionButtonText);
+            
         UpdateMessage(message ?? "");
-        RefreshUI();
     }
 
     public void UpdatePlayerIndicator(Color playerColor)
@@ -103,7 +134,7 @@ public class ChessUIManager : MonoBehaviour, IInitializable
         
         if (onClickAction != null)
         {
-            actionButton.onClick.AddListener(() => onClickAction?.Invoke());
+            actionButton?.onClick.AddListener(() => onClickAction?.Invoke());
             _currentAction = onClickAction;
         }
     }
@@ -111,12 +142,12 @@ public class ChessUIManager : MonoBehaviour, IInitializable
     public void SubscribeToActionButton(Action action)
     {
         actionButton?.onClick.RemoveAllListeners();
-        actionButton.onClick.AddListener(() => action?.Invoke());
+        actionButton?.onClick.AddListener(() => action?.Invoke());
         _currentAction = action;
     }
 
     public void UnsubscribeFromActionButton()
-    {   
+    {
         actionButton?.onClick.RemoveAllListeners();
         _currentAction = null;
     }
@@ -148,7 +179,6 @@ public class ChessUIManager : MonoBehaviour, IInitializable
         if (chessBoard)
         {
             chessBoard.SetupRandomPieces();
-
             SwitchToRestartMode();
 
             if (chessBoard.CurrentPlayer.Value != null)
@@ -161,15 +191,17 @@ public class ChessUIManager : MonoBehaviour, IInitializable
         if (!chessBoard) return;
 
         chessBoard.StartNewGame();
-
         SwitchToSetupMode();
     }
 
     public void SetUIVisible(bool visible)
     {
-        if (playerIndicator != null) playerIndicator.gameObject.SetActive(visible);
-        if (actionButton != null) actionButton.gameObject.SetActive(visible);
-        if (exitButton != null) exitButton.gameObject.SetActive(visible);
+        if (playerIndicator != null)
+            playerIndicator.gameObject.SetActive(visible);
+        if (actionButton != null)
+            actionButton.gameObject.SetActive(visible);
+        if (exitButton != null)
+            exitButton.gameObject.SetActive(visible);
     }
 
     public void RefreshUI()

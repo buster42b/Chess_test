@@ -4,6 +4,7 @@ using UnityEngine;
 
 public interface IPiece
 {
+    Transform pieceTransform {get;}
     bool IsValidMove(Vector2Int target, IBoard board);
     bool IsDead { get; }
     IEnumerable<Vector2Int> GetAvailableMoves(IBoard board);

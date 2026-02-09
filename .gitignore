@@ -1,6 +1,9 @@
 # =============== #
 # Unity generated #
 # =============== #
+[Aa]ssets/[Nn]aughty[Aa]ttributes
+[Aa]ssets/[Pp]lugins
+[Aa]ssets/[Tt]ext[Mm]esh [Pp]ro
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -50,3 +53,4 @@ Thumbs.db
 **/.idea/
 *.sln.iml
 *.csproj.iml
+Library

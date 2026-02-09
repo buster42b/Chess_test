@@ -14,5 +14,8 @@ public interface IBoard
     void ApplyMove(IPiece piece, Vector2Int target);
     void InitPlayers(int numPlayers);
     bool IsValidTilePosition(Vector2Int vector);
+    ITile GetTile(Vector2Int position);
     Vector2Int GetTileTileOnBoard(Vector3 worldPosition);
+    Vector3 GetTileWorldPosition(Vector2Int boardPosition);
+    Vector3 GetPieceWorldPosition(IPlayer owner, int index);
 }

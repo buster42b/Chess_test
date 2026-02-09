@@ -1,20 +1,48 @@
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 using Zenject;
 
 public class PieceSetupController
 {
     private readonly ChessBoard _board;
-    private readonly ChessUIManager _uiManager;
     private bool _isSetupPhase;
     private int _currentSetupPlayerIndex;
     private Dictionary<IPlayer, int> _playerPieceIndex = new();
     private int _totalPlacedPieces;
+    private Dictionary<IPlayer, Transform> _playerPieceParents = new();
 
-    public PieceSetupController(ChessBoard board, [InjectOptional] ChessUIManager uiManager)
+    public ReactiveProperty<string> SetupMessage { get; } = new ("");
+    public ReactiveProperty<bool> IsRestartMode { get; } = new (false);
+
+    public PieceSetupController(ChessBoard board)
     {
         _board = board;
-        _uiManager = uiManager;
+    }
+
+    public void InitializePieceParents()
+    {
+        foreach (var player in _board.Players)
+        {
+            // Use cached parent transform from player instead of finding or creating new ones
+            if (player.VirtualPosition != null)
+            {
+                _playerPieceParents[player] = player.VirtualPosition;
+            }
+            else
+            {
+                // Fallback: create new parent only if cached one not available
+                var parentObject = new GameObject($"Player {player.ID + 1} Pieces");
+                parentObject.transform.SetParent(_board.transform);
+                _playerPieceParents[player] = parentObject.transform;
+                
+                // Cache it in the player for future use
+                if (player is Player playerInstance)
+                {
+                    playerInstance.VirtualPosition = parentObject.transform;
+                }
+            }
+        }
     }
 
     public bool IsSetupPhase => _isSetupPhase;
@@ -29,10 +57,10 @@ public class PieceSetupController
         foreach (var player in _board.Players)
             _playerPieceIndex[player] = 0;
 
-        Debug.Log("Начинается фаза ручной расстановки фигур!");
-        Debug.Log("Правила: можно ставить на любую свободную клетку доски");
-        if (_uiManager != null)
-            _uiManager.UpdateMessage("Расставьте фигуры на доске. Кликайте по клетке.");
+        if (_playerPieceParents.Count == 0)
+            InitializePieceParents();
+
+        SetupMessage.Value = "Расставьте фигуры на доске. Кликайте по клетке.";
         StartCurrentPlayerSetup();
     }
 
@@ -52,12 +80,7 @@ public class PieceSetupController
         var currentPiece = currentPlayer.Pieces[pieceIndex];
         _board.CurrentPlayer.Value = currentPlayer;
 
-        Debug.Log($"Ход игрока {currentPlayer.ID + 1}: " +
-                  $"ставьте {currentPiece.Type} " +
-                  $"({pieceIndex + 1}/{currentPlayer.Pieces.Count})");
-
-        if (_uiManager != null)
-            _uiManager.UpdateMessage($"Игрок {currentPlayer.ID + 1}: поставьте {currentPiece.Type} ({pieceIndex + 1}/{currentPlayer.Pieces.Count})");
+        SetupMessage.Value = $"Игрок {currentPlayer.ID + 1}: поставьте {currentPiece.Type} ({pieceIndex + 1}/{currentPlayer.Pieces.Count})";
 
         _board.OnTileClicked -= HandleSetupTileClick;
         _board.OnTileClicked += HandleSetupTileClick;
@@ -101,18 +124,13 @@ public class PieceSetupController
 
     private void HandleSetupTileClick(Vector2Int tilePos, ITile clickedTile)
     {
-        if (!_isSetupPhase)
-        {
-            Debug.LogWarning("Получен клик по клетке, но фаза расстановки не активна!");
-            return;
-        }
-
+        if (!_isSetupPhase) return;
+        
         var currentPlayer = _board.Players[_currentSetupPlayerIndex];
         var pieceIndex = _playerPieceIndex[currentPlayer];
 
         if (pieceIndex >= currentPlayer.Pieces.Count)
         {
-            Debug.LogWarning($"У игрока {currentPlayer.ID + 1} нет больше фигур для расстановки");
             MoveToNextPlayerWithPieces();
             return;
         }
@@ -126,8 +144,6 @@ public class PieceSetupController
                 chessPiece.SetPosition(tilePos);
                 chessPiece.transform.position = _board.GetTileWorldPosition(tilePos);
                 clickedTile.OccupiedBy.Value = currentPiece;
-
-                Debug.Log($"Расставлена {chessPiece.Type} игрока {currentPlayer.ID + 1} на {tilePos}");
             }
 
             _playerPieceIndex[currentPlayer]++;
@@ -136,16 +152,9 @@ public class PieceSetupController
             _currentSetupPlayerIndex = (_currentSetupPlayerIndex + 1) % _board.Players.Count;
             StartCurrentPlayerSetup();
         }
-        else
-        {
-            Debug.Log($"Клетка {tilePos} занята или невалидна");
-        }
 
         if (_totalPlacedPieces >= GetTotalPieceCount())
-        {
-            Debug.Log($"Все фигуры расставлены! ({_totalPlacedPieces}/{GetTotalPieceCount()})");
             EndSetupPhase();
-        }
     }
 
     private int GetTotalPieceCount()
@@ -161,11 +170,8 @@ public class PieceSetupController
         _isSetupPhase = false;
         _board.OnTileClicked -= HandleSetupTileClick;
 
-        if (_uiManager != null)
-        {
-            _uiManager.UpdateMessage("Все фигуры расставлены. Игра началась!");
-            _uiManager.SwitchToRestartMode();
-        }
+        SetupMessage.Value = "Все фигуры расставлены. Игра началась!";
+        IsRestartMode.Value = true;
 
         if (_board.Players.Count > 0)
             _board.CurrentPlayer.Value = _board.Players[0];
@@ -179,6 +185,9 @@ public class PieceSetupController
 
     public void ResetSetupPhase()
     {
+        // Initialize piece parents if needed
+        if (_playerPieceParents.Count == 0)
+            InitializePieceParents();
 
         foreach (var tile in _board.TilesList)
             tile.OccupiedBy.Value = null;
@@ -187,32 +196,33 @@ public class PieceSetupController
         {
             _playerPieceIndex[player] = 0;
 
+            // Reset pieces in a row like when first created
+            int indexInRow = 0;
             foreach (var piece in player.Pieces)
             {
-                if (piece is ChessPiece chessPiece)
+                if (piece is not ChessPiece chessPiece) continue;
+                
+                if (_playerPieceParents.TryGetValue(player, out var parentTransform))
                 {
-                    chessPiece.transform.SetParent(
-                        GameObject.Find($"Player {player.ID + 1} Pieces").transform
-                    );
-                    chessPiece.transform.localPosition = Vector3.zero;
-                    chessPiece.SetPosition(new Vector2Int(-1, -1));
+                    chessPiece.transform.SetParent(parentTransform);
+                    chessPiece.transform.rotation = Quaternion.LookRotation(player.VirtualDirection);
+                    chessPiece.transform.localPosition = new Vector3(indexInRow * 1.0f, 0f, 0f); // Use same spacing as factory
                 }
+                
+                chessPiece.SetPosition(new Vector2Int(-1, -1));
+                indexInRow++;
             }
         }
 
         _totalPlacedPieces = 0;
         _currentSetupPlayerIndex = 0;
         _isSetupPhase = false;
-
-        Debug.Log("Доска полностью сброшена");
     }
 
     public void SetupRandomPieces()
     {
         if (_isSetupPhase)
             FinishSetupPhase();
-
-        Debug.Log("Начинаем случайную расстановку оставшихся фигур...");
 
         List<IPiece> piecesToPlace = new List<IPiece>();
 
@@ -221,23 +231,13 @@ public class PieceSetupController
             foreach (var piece in player.Pieces)
             {
                 if (!IsPiecePlacedOnBoard(piece))
-                {
                     piecesToPlace.Add(piece);
-                    Debug.Log($"Добавляем к расстановке: {piece.Type} игрока {player.ID + 1}");
-                }
-                else
-                {
-                    Debug.Log($"Фигура {piece.Type} игрока {player.ID + 1} уже на доске");
-                }
             }
         }
 
         if (piecesToPlace.Count == 0)
-        {
-            Debug.Log("Все фигуры уже расставлены!");
             return;
-        }
-
+        
         List<Vector2Int> freeTiles = new List<Vector2Int>();
 
         for (int x = 0; x < _board.Width; x++)
@@ -252,7 +252,6 @@ public class PieceSetupController
 
         if (freeTiles.Count < piecesToPlace.Count)
         {
-            Debug.LogWarning($"Недостаточно свободных клеток! Нужно: {piecesToPlace.Count}, есть: {freeTiles.Count}");
             if (freeTiles.Count == 0) return;
             piecesToPlace = piecesToPlace.GetRange(0, Mathf.Min(piecesToPlace.Count, freeTiles.Count));
         }
@@ -270,20 +269,12 @@ public class PieceSetupController
                 var tilePos = freeTiles[i];
 
                 if (PlacePieceOnTile(piece, tilePos))
-                {
                     placedCount++;
-                    Debug.Log($"Расставлена {piece.Type} игрока {piece.Owner.ID + 1} на {tilePos}");
-                }
             }
         }
 
-        Debug.Log($"Расставлено {placedCount} фигур из {piecesToPlace.Count} оставшихся");
-
         if (AreAllPiecesPlaced())
-        {
-            Debug.Log("Все фигуры расставлены!");
             EndSetupPhase();
-        }
     }
 
     private bool IsPiecePlacedOnBoard(IPiece piece)
@@ -320,9 +311,7 @@ public class PieceSetupController
         {
             n--;
             int k = random.Next(n + 1);
-            T value = list[k];
-            list[k] = list[n];
-            list[n] = value;
+            (list[k], list[n]) = (list[n], list[k]);
         }
     }
 
@@ -333,14 +322,10 @@ public class PieceSetupController
         var tile = _board.Tiles[tilePos.x, tilePos.y];
         if (!tile.IsEmpty) return false;
 
-        if (piece is ChessPiece chessPiece)
-        {
-            chessPiece.SetPosition(tilePos);
-            chessPiece.transform.position = _board.GetTileWorldPosition(tilePos);
-            tile.OccupiedBy.Value = piece;
-            return true;
-        }
-
-        return false;
+        if (piece is not ChessPiece chessPiece) return false;
+        chessPiece.SetPosition(tilePos);
+        chessPiece.transform.position = _board.GetTileWorldPosition(tilePos);
+        tile.OccupiedBy.Value = piece;
+        return true;
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UniRx;
 using UnityEngine;
 
 public interface IPlayer
@@ -7,6 +8,7 @@ public interface IPlayer
     public int ID { get; }
     IReadOnlyList<IPiece> Pieces { get; }
     List<PieceType> RemainingPieces { get; }
+    Transform VirtualPosition { get; }
 
     Vector3 VirtualDirection { get; }
 }

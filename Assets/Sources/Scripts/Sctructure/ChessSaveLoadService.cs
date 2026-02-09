@@ -10,11 +10,11 @@ public class GameSaveData
     public int width;
     public int height;
     public int currentPlayerIndex;
-    public int isGameOver; // 0/1 for JsonUtility compatibility
+    public int isGameOver;
     public TileSaveEntry[] tiles;
     public string message;
     public string actionButtonText;
-    public int isRestartMode; // 0 = setup (random place), 1 = restart
+    public int isRestartMode;
 }
 
 [Serializable]
@@ -24,7 +24,7 @@ public class TileSaveEntry
     public int y;
     public int playerIndex;
     public int pieceIndex;
-    public int pieceType; // PieceType as int
+    public int pieceType;
 }
 
 public class ChessSaveLoadService : MonoBehaviour, IInitializable
@@ -42,9 +42,6 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         TryLoadAndStartSetup();
     }
 
-    /// <summary>
-    /// Load from disk if save exists and apply to board; otherwise start setup phase.
-    /// </summary>
     public void TryLoadAndStartSetup()
     {
         var data = LoadFromDisk();
@@ -57,10 +54,6 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         _setupController.StartSetupPhase();
     }
 
-    /// <summary>
-    /// Save current board state to disk. Call on exit button and on application quit.
-    /// Does nothing (and removes any existing save) if still in setup phase.
-    /// </summary>
     public void Save()
     {
         if (_setupController != null && _setupController.IsSetupPhase)
@@ -76,7 +69,6 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         {
             string json = JsonUtility.ToJson(data, prettyPrint: true);
             File.WriteAllText(SavePath, json);
-            Debug.Log($"Игра сохранена: {SavePath}");
         }
         catch (Exception e)
         {
@@ -89,10 +81,7 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         try
         {
             if (File.Exists(SavePath))
-            {
                 File.Delete(SavePath);
-                Debug.Log("Сохранение удалено (игра не была начата).");
-            }
         }
         catch (Exception e)
         {
@@ -192,10 +181,6 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         }
     }
 
-    /// <summary>
-    /// Apply loaded data to the board. Returns false if data is invalid or board mismatch.
-    /// Rejects incomplete saves (not all pieces on board).
-    /// </summary>
     private bool ApplyLoad(GameSaveData data)
     {
         if (data == null || _board == null) return false;
@@ -206,13 +191,11 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         foreach (var player in _board.Players)
             totalPieces += player.Pieces.Count;
         if (data.tiles.Length != totalPieces)
-            return false; // Incomplete save (setup was not finished)
+            return false;
 
-        // Clear all tiles
         foreach (var tile in _board.TilesList)
             tile.OccupiedBy.Value = null;
 
-        // Move all pieces off-board (position -1,-1 and parent back to player container if needed)
         foreach (var player in _board.Players)
         {
             foreach (var piece in player.Pieces)
@@ -228,7 +211,6 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
             }
         }
 
-        // Place pieces from save data
         foreach (var entry in data.tiles)
         {
             if (entry.playerIndex < 0 || entry.playerIndex >= _board.Players.Count) continue;

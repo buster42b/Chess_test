@@ -1,45 +1,45 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class ChessMoveExecutor
 {
-    public bool IsMoveLegal(ChessBoard board, IPiece piece, Vector2Int target)
+    public bool IsMoveLegal(IBoard board, IPiece piece, Vector2Int target)
     {
         if (board == null || !board.IsValidTilePosition(target)) return false;
 
-        var targetTile = board.Tiles[target.x, target.y];
+        var targetTile = board.GetTile(target);
 
-        if (!targetTile.IsEmpty && targetTile.OccupiedBy.Value.Owner == piece.Owner)
+        if (!targetTile.IsEmpty && targetTile.GetOccupiedPiece().Owner == piece.Owner)
             return false;
 
         return true;
     }
 
-    public void ApplyMove(ChessBoard board, IPiece piece, Vector2Int target)
+    public void ApplyMove(IBoard board, IPiece piece, Vector2Int target)
     {
         if (board == null || !IsMoveLegal(board, piece, target)) return;
 
         Vector2Int oldPosition = piece.Position;
 
         if (board.IsValidTilePosition(oldPosition))
-            board.Tiles[oldPosition.x, oldPosition.y].OccupiedBy.Value = null;
+            board.GetTile(oldPosition).SetOccupiedPiece(null);
 
-        var targetTile = board.Tiles[target.x, target.y];
+        var targetTile = board.GetTile(target);
 
         if (!targetTile.IsEmpty)
         {
-            var capturedPiece = targetTile.OccupiedBy.Value;
+            var capturedPiece = targetTile.GetOccupiedPiece();
             Debug.Log($"Фигура {capturedPiece.Type} съедена!");
         }
 
-        targetTile.OccupiedBy.Value = piece;
+        targetTile.SetOccupiedPiece(piece);
 
-        if (piece is MonoBehaviour pieceMono)
-            pieceMono.transform.position = board.GetTileWorldPosition(target);
+        piece.pieceTransform.position = board.GetTileWorldPosition(target);
 
         Debug.Log($"Фигура {piece.Type} перемещена с {oldPosition} на {target}");
     }
 
-    public MoveResult TryMovePiece(ChessBoard board, IPiece piece, Vector2Int targetPosition,
+    public MoveResult TryMovePiece(IBoard board, IPiece piece, Vector2Int targetPosition,
         System.Action<IPlayer> onKingCaptured)
     {
         if (board == null) return MoveResult.Failed("Доска не задана");
@@ -52,17 +52,17 @@ public class ChessMoveExecutor
         if (targetPosition == piece.Position)
             return MoveResult.Failed("Фигура уже на этой клетке");
 
-        var targetTile = board.Tiles[targetPosition.x, targetPosition.y];
+        var targetTile = board.GetTile(targetPosition);
 
-        if (!targetTile.IsEmpty && targetTile.OccupiedBy.Value.Owner == piece.Owner)
+        if (!targetTile.IsEmpty && targetTile.GetOccupiedPiece().Owner == piece.Owner)
             return MoveResult.Failed("На клетке уже стоит ваша фигура");
 
         IPiece capturedPiece = null;
         bool wasCapture = false;
 
-        if (!targetTile.IsEmpty && targetTile.OccupiedBy.Value.Owner != piece.Owner)
+        if (!targetTile.IsEmpty && targetTile.GetOccupiedPiece().Owner != piece.Owner)
         {
-            capturedPiece = targetTile.OccupiedBy.Value;
+            capturedPiece = targetTile.GetOccupiedPiece();
             wasCapture = true;
         }
 
@@ -76,49 +76,39 @@ public class ChessMoveExecutor
             : MoveResult.Success(wasCapture, capturedPiece);
     }
 
-    private void ExecuteMove(ChessBoard board, IPiece piece, Vector2Int targetPosition,
+    private void ExecuteMove(IBoard board, IPiece piece, Vector2Int targetPosition,
         bool wasCapture, IPiece capturedPiece)
     {
         Vector2Int oldPosition = piece.Position;
 
         if (board.IsValidTilePosition(oldPosition))
-            board.Tiles[oldPosition.x, oldPosition.y].OccupiedBy.Value = null;
+            board.GetTile(oldPosition).SetOccupiedPiece(null);
 
         if (wasCapture && capturedPiece != null)
         {
             if (capturedPiece is ChessPiece capturedChessPiece)
             {
-                int capturedIndex = CountCapturedPiecesOf(board, capturedPiece.Owner, capturedPiece);
-                Vector3 capturedPos = board.GetCapturedPieceWorldPosition(capturedPiece.Owner, capturedIndex);
+                int capturedIndex = CountCapturedPiecesOf(capturedPiece.Owner, capturedPiece);
+                Vector3 capturedPos = board.GetPieceWorldPosition(capturedPiece.Owner, capturedIndex);
 
-                if (capturedPiece.Type == PieceType.King)
-                {
-                    capturedChessPiece.Kill();
-                    capturedChessPiece.transform.position = capturedPos;
-                    Debug.Log($"КОРОЛЬ захвачен! Игра окончена.");
-                }
-                else
-                {
-                    capturedChessPiece.Kill();
-                    capturedChessPiece.transform.position = capturedPos;
-                    Debug.Log($"Фигура {capturedPiece.Type} захвачена!");
-                }
+                
+                capturedChessPiece.Kill();
+                capturedChessPiece.transform.DOMove(capturedPos,.5f).SetEase(Ease.InOutQuad);
             }
         }
 
-        var targetTile = board.Tiles[targetPosition.x, targetPosition.y];
-        targetTile.OccupiedBy.Value = piece;
+        var targetTile = board.GetTile(targetPosition);
+        targetTile.SetOccupiedPiece(piece);
 
         if (piece is ChessPiece chessPiece)
         {
             chessPiece.SetPosition(targetPosition);
-            chessPiece.transform.position = board.GetTileWorldPosition(targetPosition);
+            Vector3 targetWorldPosition = board.GetTileWorldPosition(targetPosition);
+            chessPiece.transform.DOMove(targetWorldPosition, .5f).SetEase(Ease.InOutQuad);
         }
-
-        Debug.Log($"{piece.Type} перемещен с {oldPosition} на {targetPosition}");
     }
 
-    private static int CountCapturedPiecesOf(ChessBoard board, IPlayer owner, IPiece excludePiece)
+    private static int CountCapturedPiecesOf(IPlayer owner, IPiece excludePiece)
     {
         int count = 0;
         foreach (var p in owner.Pieces)
