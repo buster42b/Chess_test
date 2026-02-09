@@ -7,8 +7,8 @@ public class ChessPieceFactory
 {
     private readonly ChessPiecesConfig _config;
     private Dictionary<PieceType, ChessPiece> _prefabsCache;
-    private readonly Transform _piecesParent; 
-    
+    private readonly Transform _piecesParent;
+    [Inject] private ChessBoard _board;
     [Inject]
     public ChessPieceFactory(ChessPiecesConfig config) 
     {
@@ -26,7 +26,9 @@ public class ChessPieceFactory
         }
     }
     
-    public IPiece Create(PieceType type, Vector2Int position, IPlayer owner, Transform playerVirtualPosition) 
+    private const float PieceRowSpacing = 1f;
+
+    public IPiece Create(PieceType type, Vector2Int position, IPlayer owner, Transform playerVirtualPosition, int indexInRow = 0) 
     {
         if (!_prefabsCache.TryGetValue(type, out ChessPiece prefab))
         {
@@ -38,6 +40,7 @@ public class ChessPieceFactory
         var piece = pieceObj.GetComponent<ChessPiece>();
     
         pieceObj.transform.rotation = Quaternion.LookRotation(owner.VirtualDirection);
+        pieceObj.transform.localPosition = new Vector3(indexInRow * PieceRowSpacing, 0f, 0f);
     
         piece.Init(type, position, owner);
         return piece;
@@ -49,11 +52,17 @@ public class ChessPieceFactory
         Transform virtualPosition = new GameObject($"Player {owner.ID+1} Pieces").transform;
     
         virtualPosition.rotation = Quaternion.LookRotation(owner.VirtualDirection);
-        virtualPosition.position -= owner.VirtualDirection;
+        virtualPosition.position -= owner.VirtualDirection * 10;
     
+        int indexInRow = 0;
         foreach (var set in _config.Pieces)
+        {
             for (int i = 0; i < set.CountPerPlayer; i++)
-                result.Add(Create(set.Type, Vector2Int.zero, owner, virtualPosition));
+            {
+                result.Add(Create(set.Type, Vector2Int.zero, owner, virtualPosition, indexInRow));
+                indexInRow++;
+            }
+        }
     
         return result;
     }
