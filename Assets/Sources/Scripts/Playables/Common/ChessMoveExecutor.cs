@@ -85,6 +85,13 @@ public class ChessMoveExecutor
         if (wasCapture && capturedPiece != null && capturedPiece.Type == PieceType.King)
             onKingCaptured?.Invoke(capturedPiece.Owner);
 
+        bool requiresPromotion = piece.Type == PieceType.Pawn && 
+                                piece is Pawn pawn && 
+                                pawn.CanPromote(board);
+
+        if (requiresPromotion)
+            return MoveResult.PromotionRequired(piece, wasCapture, capturedPiece);
+
         return wasCapture && capturedPiece != null && capturedPiece.Type == PieceType.King
             ? MoveResult.KingCaptured(capturedPiece)
             : MoveResult.Success(wasCapture, capturedPiece);

@@ -2,23 +2,24 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
- 
+
 public class ChessClickHandler: MonoBehaviour, IInteractionHandler
 {
     [SerializeField] private LayerMask boardLayer = 1 << 0;
     [SerializeField] private LayerMask pieceLayer = 1 << 6;
- 
+
     private Camera _mainCamera;
     private InputAction _clickAction;
-    private ChessBoard _chessBoard;
+    private IBoard _chessBoard;
     private PieceSetupController _setupController;
+    private PawnPromotionManager _promotionManager;
     private IPiece _selectedPiece = null;
     private bool _hasSelection = false;
- 
+
     public ReactiveProperty<string> InteractionMessage { get; } = new ("");
     public ReactiveProperty<Color> PlayerIndicatorColor { get; } = new ();
- 
-    public void Initialize(ChessBoard board)
+
+    public void Initialize(IBoard board)
     {
         _mainCamera = Camera.main;
         _chessBoard = board;
@@ -27,11 +28,17 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         _clickAction.performed += OnSelection;
         _clickAction.Enable();
     }
- 
+
+    public void SetPromotionManager(PawnPromotionManager promotionManager)
+    {
+        _promotionManager = promotionManager;
+    }
+
     public void SetSetupController(PieceSetupController setupController)
     {
         _setupController = setupController;
     }
+
  
     public void OnSelection(InputAction.CallbackContext context)
     {
@@ -135,6 +142,19 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         if (result.IsSuccess)
         {
             ClearSelection();
+ 
+            if (result.RequiresPromotion && _promotionManager != null)
+            {
+                if (result.PawnToPromote is Pawn pawn)
+                {
+                    _promotionManager.TryStartPromotion(pawn);
+                    _promotionManager.OnPromotionCompleted += () => {
+                        if (!_chessBoard.IsGameOver && !result.WasKingCaptured)
+                            SwitchToNextPlayer();
+                    };
+                    return;
+                }
+            }
  
             if (!_chessBoard.IsGameOver && !result.WasKingCaptured)
                 SwitchToNextPlayer();

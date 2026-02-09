@@ -11,4 +11,6 @@ public interface IPlayer
     Transform VirtualPosition { get; }
 
     Vector3 VirtualDirection { get; }
+    public void AddPiece(IPiece piece);
+    public void RemovePiece(IPiece piece);
 }

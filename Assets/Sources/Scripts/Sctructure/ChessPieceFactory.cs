@@ -44,6 +44,28 @@ public class ChessPieceFactory
         piece.Init(type, position, owner);
         return piece;
     }
+
+    public ChessPiece CreatePiece(PieceType type, Vector2Int boardPosition, IPlayer owner)
+    {
+        if (!_prefabsCache.TryGetValue(type, out ChessPiece prefab))
+        {
+            Debug.LogError($"No prefab for {type}");
+            return null;
+        }
+
+        var piece = Object.Instantiate(prefab);
+        
+        if (_board != null)
+        {
+            Vector3 worldPosition = _board.GetTileWorldPosition(boardPosition);
+            piece.transform.position = worldPosition;
+        }
+        
+        piece.transform.rotation = Quaternion.LookRotation(owner.VirtualDirection);
+        piece.Init(type, boardPosition, owner);
+        
+        return piece;
+    }
     
     public List<IPiece> CreateFullSet(IPlayer owner) 
     {

@@ -14,6 +14,14 @@ public class Pawn : ChessPiece
         StartingPosition = position;
     }
 
+    public bool CanPromote(IBoard board)
+    {
+        if (board == null) return false;
+        
+        int promotionRank = Direction == 1 ? board.Height - 1 : 0;
+        return Position.y == promotionRank;
+    }
+
     public override IEnumerable<Vector2Int> GetAvailableMoves(IBoard board)
     {
         Vector2Int forwardPos = Position + new Vector2Int(0, Direction);

@@ -27,4 +27,20 @@ public class Player : IPlayer
     {
         _pieces = _factory.CreateFullSet(this);
     }
+
+    public void AddPiece(IPiece piece)
+    {
+        if (piece != null && !_pieces.Contains(piece))
+        {
+            _pieces.Add(piece);
+        }
+    }
+
+    public void RemovePiece(IPiece piece)
+    {
+        if (piece != null && _pieces.Contains(piece))
+        {
+            _pieces.Remove(piece);
+        }
+    }
 }
