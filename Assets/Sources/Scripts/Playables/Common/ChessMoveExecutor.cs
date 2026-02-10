@@ -90,14 +90,12 @@ public class ChessMoveExecutor
             capturedPiece = targetTile.GetOccupiedPiece();
             wasCapture = true;
         }
-        // Check for en passant capture
-        
         
         else if (targetTile.IsEmpty && pawn)
         {
             Vector2Int direction = new Vector2Int(0, (int)piece.Owner.VirtualDirection.z);
             Vector2Int expectedPosition = pawn.Position + direction;
-            bool isOnCorrectRank = direction.y == 1 ? expectedPosition.y == 4 : expectedPosition.y == 3;
+            bool isOnCorrectRank = direction.y == 1 ? pawn.Position.y == 4 : pawn.Position.y == 3;
             
             if (isOnCorrectRank && Mathf.Abs(targetPosition.x - pawn.Position.x) == 1 && targetPosition.y == expectedPosition.y)
             {
@@ -150,7 +148,6 @@ public class ChessMoveExecutor
                 capturedChessPiece.Kill();
                 capturedChessPiece.transform.DOMove(capturedPos,.5f).SetEase(Ease.InOutQuad);
                 
-                // For en passant, remove the captured pawn from its original position
                 if (piece is Pawn && targetPosition != capturedPiece.Position)
                 {
                     var capturedTile = board.GetTile(capturedPiece.Position);
@@ -158,6 +155,13 @@ public class ChessMoveExecutor
                     {
                         capturedTile.SetOccupiedPiece(null);
                         Debug.Log($"En passant: Removed pawn from {capturedPiece.Position}");
+                        
+                        // Show the tile behind the pawn after en passant move
+                        Vector2Int behindPosition = new Vector2Int(targetPosition.x, targetPosition.y - (int)piece.Owner.VirtualDirection.z);
+                        if (board.IsValidTilePosition(behindPosition))
+                        {
+                            Debug.Log($"Tile behind pawn AFTER en passant move: {behindPosition}");
+                        }
                     }
                 }
             }

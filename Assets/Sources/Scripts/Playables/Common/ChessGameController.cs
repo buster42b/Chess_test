@@ -27,16 +27,47 @@ public class ChessGameController
         _board.SetGameOver(false);
         EnableAllPieces();
 
+        // Un-capture all pieces and place them at starting positions
         foreach (var player in _board.Players)
         {
             foreach (var piece in player.Pieces)
             {
                 if (piece is ChessPiece chessPiece)
                 {
+                    chessPiece.Reset(); // Make piece alive again
                     chessPiece.gameObject.SetActive(true);
                     var renderer = chessPiece.GetComponent<Renderer>();
                     if (renderer != null)
                         renderer.material.color = player.Color;
+
+                    // Get starting position for pieces that need it
+                    Vector2Int startingPos = Vector2Int.zero;
+                    if (piece is Pawn pawn)
+                        startingPos = pawn.StartingPosition;
+                    else if (piece is King king)
+                        startingPos = king.StartingPosition;
+                    else if (piece is Rook rook)
+                        startingPos = rook.StartingPosition;
+                    else
+                    {
+                        // For other pieces, use their current position as starting position
+                        startingPos = piece.Position;
+                        if (startingPos.x == -1 || startingPos.y == -1)
+                        {
+                            // If position is invalid, don't place on board
+                            continue;
+                        }
+                    }
+
+                    // Place piece at starting position
+                    if (startingPos.x >= 0 && startingPos.x < _board.Width && 
+                        startingPos.y >= 0 && startingPos.y < _board.Height)
+                    {
+                        var tile = _board.Tiles[startingPos.x, startingPos.y];
+                        tile.OccupiedBy.Value = piece;
+                        chessPiece.SetPosition(startingPos);
+                        chessPiece.transform.position = _board.GetTileWorldPosition(startingPos);
+                    }
                 }
             }
         }

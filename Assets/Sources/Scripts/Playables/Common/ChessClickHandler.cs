@@ -139,11 +139,9 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         {
             ClearSelection();
 
-            // Only switch to next player if promotion is not required
             if (!_chessBoard.IsGameOver && !result.WasKingCaptured && !result.RequiresPromotion)
                 SwitchToNextPlayer();
             
-            // Auto-save after successful move
             _saveLoadService?.Save();
         }
         else

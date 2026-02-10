@@ -98,14 +98,12 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
 
         var entries = new List<TileSaveEntry>();
 
-        // Save all pieces (both alive and captured)
         foreach (var player in _board.Players)
         {
             for (int pieceIndex = 0; pieceIndex < player.Pieces.Count; pieceIndex++)
             {
                 var piece = player.Pieces[pieceIndex];
                 
-                // Get starting position for pieces that need it (Pawn, King, Rook)
                 Vector2Int startingPos = Vector2Int.zero;
                 if (piece is Pawn pawn)
                     startingPos = pawn.StartingPosition;
@@ -113,9 +111,7 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
                     startingPos = king.StartingPosition;
                 else if (piece is Rook rook)
                     startingPos = rook.StartingPosition;
-
-                // For alive pieces, use their current position
-                // For captured pieces, use -1, -1 as position
+                        
                 Vector2Int position = piece.IsDead ? new Vector2Int(-1, -1) : piece.Position;
 
                 entries.Add(new TileSaveEntry
@@ -219,14 +215,12 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
                 if (!piece.IsDead) alivePieces++;
         }
         
-        // Check if saved pieces count matches total pieces
         if (data.tiles.Length != totalPieces)
             return false;
 
         foreach (var tile in _board.TilesList)
             tile.OccupiedBy.Value = null;
 
-        // Reset all pieces first
         foreach (var player in _board.Players)
         {
             foreach (var piece in player.Pieces)
@@ -243,7 +237,6 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
             }
         }
 
-        // Restore pieces from save data
         foreach (var entry in data.tiles)
         {
             if (entry.playerIndex < 0 || entry.playerIndex >= _board.Players.Count) continue;
@@ -253,10 +246,8 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
             var piece = player.Pieces[entry.pieceIndex];
             if ((int)piece.Type != entry.pieceType) continue;
 
-            // Restore starting position for pieces that need it
-            // Handle backward compatibility for old save files
             Vector2Int startingPos = (entry.startingPositionX == 0 && entry.startingPositionY == 0) 
-                ? new Vector2Int(entry.x, entry.y)  // Default to current position for old saves
+                ? new Vector2Int(entry.x, entry.y)
                 : new Vector2Int(entry.startingPositionX, entry.startingPositionY);
                 
             if (piece is Pawn pawn)
@@ -268,30 +259,21 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
 
             if (entry.isCaptured)
             {
-                // Handle captured pieces
-                if (piece is ChessPiece chessPiece)
-                {
-                    chessPiece.Kill();
-                    // Move captured pieces to their captured position
-                    int capturedIndex = CountCapturedPiecesOf(player, piece);
-                    Vector3 capturedPos = _board.GetPieceWorldPosition(player, capturedIndex);
-                    chessPiece.transform.position = capturedPos;
-                }
+                if (piece is not ChessPiece chessPiece) continue;
+                chessPiece.Kill();
+                int capturedIndex = CountCapturedPiecesOf(player, piece);
+                Vector3 capturedPos = _board.GetPieceWorldPosition(player, capturedIndex);
+                chessPiece.transform.position = capturedPos;
             }
             else
             {
-                // Handle alive pieces
-                if (entry.x >= 0 && entry.x < _board.Width && entry.y >= 0 && entry.y < _board.Height)
-                {
-                    var tile = _board.Tiles[entry.x, entry.y];
-                    tile.OccupiedBy.Value = piece;
+                if (entry.x < 0 || entry.x >= _board.Width || entry.y < 0 || entry.y >= _board.Height) continue;
+                var tile = _board.Tiles[entry.x, entry.y];
+                tile.OccupiedBy.Value = piece;
 
-                    if (piece is ChessPiece cp)
-                    {
-                        cp.SetPosition(new Vector2Int(entry.x, entry.y));
-                        cp.transform.position = _board.GetTileWorldPosition(new Vector2Int(entry.x, entry.y));
-                    }
-                }
+                if (piece is not ChessPiece cp) continue;
+                cp.SetPosition(new Vector2Int(entry.x, entry.y));
+                cp.transform.position = _board.GetTileWorldPosition(new Vector2Int(entry.x, entry.y));
             }
         }
 
