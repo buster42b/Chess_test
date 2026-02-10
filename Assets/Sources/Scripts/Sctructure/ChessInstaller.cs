@@ -20,8 +20,13 @@ public class ChessInstaller : MonoInstaller
 
         Container.Bind<ChessMoveExecutor>().AsSingle();
         Container.Bind<PieceSetupController>().AsSingle();
-        Container.Bind<ChessGameController>().AsSingle();
         Container.Bind<ChessClickHandler>().AsSingle();
+
+        Container.Bind<ChessPieceFactory>()
+            .AsSingle()
+            .WithArguments(piecesConfig);
+
+        Container.Bind<ChessGameController>().AsSingle();
 
         if (uiPrefab)
         {
@@ -37,10 +42,6 @@ public class ChessInstaller : MonoInstaller
             .FromNewComponentOnNewGameObject()
             .AsSingle();
         Container.Bind<IInitializable>().To<ChessSaveLoadService>().FromResolve();
-        
-        Container.Bind<ChessPieceFactory>()
-            .AsSingle()
-            .WithArguments(piecesConfig);
 
         if (promotionUIPrefab)
         {

@@ -13,41 +13,6 @@ public class ChessMoveExecutor
         _pieceFactory = pieceFactory;
         _promotionUIManager = promotionUIManager;
     }
-    public bool IsMoveLegal(IBoard board, IPiece piece, Vector2Int target)
-    {
-        if (board == null || !board.IsValidTilePosition(target)) return false;
-
-        var targetTile = board.GetTile(target);
-
-        if (!targetTile.IsEmpty && targetTile.GetOccupiedPiece().Owner == piece.Owner)
-            return false;
-
-        return true;
-    }
-
-    public void ApplyMove(IBoard board, IPiece piece, Vector2Int target)
-    {
-        if (board == null || !IsMoveLegal(board, piece, target)) return;
-
-        Vector2Int oldPosition = piece.Position;
-
-        if (board.IsValidTilePosition(oldPosition))
-            board.GetTile(oldPosition).SetOccupiedPiece(null);
-
-        var targetTile = board.GetTile(target);
-
-        if (!targetTile.IsEmpty)
-        {
-            var capturedPiece = targetTile.GetOccupiedPiece();
-            Debug.Log($"Фигура {capturedPiece.Type} съедена!");
-        }
-
-        targetTile.SetOccupiedPiece(piece);
-
-        piece.pieceTransform.position = board.GetTileWorldPosition(target);
-
-        Debug.Log($"Фигура {piece.Type} перемещена с {oldPosition} на {target}");
-    }
 
     public MoveResult TryMovePiece(IBoard board, IPiece piece, Vector2Int targetPosition,
         System.Action<IPlayer> onKingCaptured)
@@ -113,18 +78,29 @@ public class ChessMoveExecutor
 
         ExecuteMove(board, piece, targetPosition, wasCapture, capturedPiece);
 
-        if (pawn && pawn.CanPromote)
-        {
-            HandlePawnPromotion(board, pawn, targetPosition, onKingCaptured);
-            return MoveResult.PromotionRequired(wasCapture, capturedPiece);
-        }
-
+        ChessPiece chessPiece = piece as ChessPiece;
+        bool shouldCheckPromotion = pawn && pawn.CanPromote;
+        
         if (wasCapture && capturedPiece != null && capturedPiece.Type == PieceType.King)
             onKingCaptured?.Invoke(capturedPiece.Owner);
 
-        return wasCapture && capturedPiece != null && capturedPiece.Type == PieceType.King
+        var result = wasCapture && capturedPiece != null && capturedPiece.Type == PieceType.King
             ? MoveResult.KingCaptured(capturedPiece)
             : MoveResult.Success(wasCapture, capturedPiece);
+
+        if (!shouldCheckPromotion) return result;
+        if (chessPiece != null)
+        {
+            chessPiece.transform.DOScale(1f, 0.5f).OnComplete(() => {
+                HandlePawnPromotion(board, pawn, targetPosition, onKingCaptured);
+            });
+        }
+        else
+        {
+            HandlePawnPromotion(board, pawn, targetPosition, onKingCaptured);
+        }
+        return MoveResult.PromotionRequired(wasCapture, capturedPiece);
+
     }
 
     private void ExecuteMove(IBoard board, IPiece piece, Vector2Int targetPosition,
@@ -209,6 +185,7 @@ public class ChessMoveExecutor
         pawn.Owner.RemovePiece(pawn);
         
         ChessPiece newPiece = _pieceFactory.CreatePiece(promotionType, position, pawn.Owner);
+        newPiece.Promoted = true;
         
         var tile = board.GetTile(position);
         tile.SetOccupiedPiece(newPiece);
@@ -216,7 +193,5 @@ public class ChessMoveExecutor
         pawn.Owner.AddPiece(newPiece);
         
         GameObject.Destroy(pawn.gameObject);
-        
-        Debug.Log($"Pawn promoted to {promotionType} at {position}");
     }
 }

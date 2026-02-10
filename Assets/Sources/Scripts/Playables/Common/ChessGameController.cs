@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UniRx;
 using UnityEngine;
@@ -8,6 +9,7 @@ public class ChessGameController
     private readonly ChessBoard _board;
     private readonly PieceSetupController _setupController;
     private readonly IInteractionHandler _interactionHandler;
+    private readonly ChessPieceFactory _pieceFactory;
 
     [InjectOptional] private ChessSaveLoadService _saveLoadService;
 
@@ -15,17 +17,21 @@ public class ChessGameController
     public ReactiveProperty<bool> IsRestartMode { get; } = new (false);
 
     public ChessGameController(ChessBoard board, PieceSetupController setupController,
-        [InjectOptional] IInteractionHandler interactionHandler)
+        [InjectOptional] IInteractionHandler interactionHandler, ChessPieceFactory pieceFactory)
     {
         _board = board;
         _setupController = setupController;
         _interactionHandler = interactionHandler;
+        _pieceFactory = pieceFactory;
     }
 
     public void StartNewGame()
     {
         _board.SetGameOver(false);
         EnableAllPieces();
+
+        // Convert promoted pieces back to pawns
+        ConvertPromotedPiecesBackToPawns();
 
         // Un-capture all pieces and place them at starting positions
         foreach (var player in _board.Players)
@@ -111,5 +117,56 @@ public class ChessGameController
     {
         IsRestartMode.Value = false;
         GameMessage.Value = "Кликайте по клеткам чтобы расставить фигуры";
+    }
+
+    private void ConvertPromotedPiecesBackToPawns()
+    {
+        var piecesToReplace = new List<(ChessPiece promotedPiece, IPlayer owner, Vector2Int position)>();
+
+        // Find all promoted pieces
+        foreach (var player in _board.Players)
+        {
+            foreach (var piece in player.Pieces)
+            {
+                if (piece is ChessPiece chessPiece && chessPiece.Promoted)
+                {
+                    piecesToReplace.Add((chessPiece, player, piece.Position));
+                }
+            }
+        }
+
+        // Replace each promoted piece with a pawn
+        foreach (var (promotedPiece, owner, position) in piecesToReplace)
+        {
+            // Remove the promoted piece from player and board
+            owner.RemovePiece(promotedPiece);
+            
+            // Clear the tile if the piece was on the board
+            if (position.x >= 0 && position.x < _board.Width && 
+                position.y >= 0 && position.y < _board.Height)
+            {
+                var tile = _board.Tiles[position.x, position.y];
+                if (tile.OccupiedBy.Value == promotedPiece)
+                    tile.OccupiedBy.Value = null;
+            }
+
+            // Create a new pawn
+            var newPawn = _pieceFactory.CreatePiece(PieceType.Pawn, position, owner);
+            newPawn.Promoted = false; // Ensure the new pawn is not marked as promoted
+            
+            // Add the pawn to the player
+            owner.AddPiece(newPawn);
+
+            // Place the pawn on the board if position is valid
+            if (position.x >= 0 && position.x < _board.Width && 
+                position.y >= 0 && position.y < _board.Height)
+            {
+                var tile = _board.Tiles[position.x, position.y];
+                tile.OccupiedBy.Value = newPawn;
+            }
+
+            // Destroy the promoted piece GameObject
+            GameObject.Destroy(promotedPiece.gameObject);
+        }
     }
 }

@@ -74,7 +74,6 @@ public class ChessPieceFactory
         virtualPosition.rotation = Quaternion.LookRotation(owner.VirtualDirection);
         virtualPosition.position -= owner.VirtualDirection * 10;
         
-        // Cache the parent transform in the player for reuse
         if (owner is Player player)
         {
             player.VirtualPosition = virtualPosition;

@@ -11,7 +11,7 @@ public class Player : IPlayer
     public Color Color { get; }
     public int ID { get; }
     private List<IPiece> _pieces = new(); 
-    public IReadOnlyList<IPiece> Pieces => _pieces.AsReadOnly();
+    public List<IPiece> Pieces => _pieces;
     public List<PieceType> RemainingPieces { get; }
     public Vector3 VirtualDirection { get; }
     public Transform VirtualPosition { get; set; }

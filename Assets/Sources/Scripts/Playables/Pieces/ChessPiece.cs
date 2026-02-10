@@ -10,6 +10,7 @@ public class ChessPiece : MonoBehaviour, IPiece
     public Vector2Int Position { get; protected set; }
     public IPlayer Owner { get; private set; }
     [field: SerializeField]public virtual PieceType Type { get; private set; }
+    public bool Promoted { get; set; }
     public virtual void Init(PieceType type, Vector2Int position, IPlayer owner)
     {
         Type = type;

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using Zenject;
 
 public class Pawn : ChessPiece
 {
@@ -53,7 +51,6 @@ public class Pawn : ChessPiece
             if (!captureTile.IsEmpty && captureTile.OccupiedBy.Value.Owner != Owner)
                 yield return capturePos;
 
-            // En passant capture
             else if (captureTile.IsEmpty)
             {
                 Vector2Int adjacentPawnPos = Position + new Vector2Int(captureMove.x, 0);
