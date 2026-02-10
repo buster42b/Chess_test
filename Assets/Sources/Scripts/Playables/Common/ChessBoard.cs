@@ -56,7 +56,7 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
         _boardRenderer?.Initialize(this);
     }
 
-    public void InitPlayers(int numPlayers)
+    private void InitPlayers(int numPlayers)
     {
         _playersInternal = new List<IPlayer>();
         for (int i = 0; i < numPlayers; i++)
@@ -137,15 +137,6 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
         return _boardRenderer.GetTileAtWorldPosition(worldPosition);
     }
 
-    public bool IsMoveLegal(IPiece piece, Vector2Int target)
-    {
-        return _moveExecutor.IsMoveLegal(this, piece, target);
-    }
-
-    public void ApplyMove(IPiece piece, Vector2Int target)
-    {
-        _moveExecutor.ApplyMove(this, piece, target);
-    }
 
     public MoveResult TryMovePiece(IPiece piece, Vector2Int targetPosition)
     {
