@@ -6,7 +6,7 @@ using Zenject;
 public class Pawn : ChessPiece
 {
     private int Direction => (int)Owner.VirtualDirection.z;
-    private Vector2Int StartingPosition { get; set; }
+    public Vector2Int StartingPosition { get; set; }
     private bool HasMoved => Position != StartingPosition;
     
     public bool CanPromote => Direction == 1 ? Position.y == 7 : Position.y == 0;

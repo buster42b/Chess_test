@@ -70,7 +70,7 @@ public class King : ChessPiece
         return true;
     }
 
-    private Vector2Int StartingPosition { get; set; }
+    public Vector2Int StartingPosition { get; set; }
     public bool HasMoved => Position != StartingPosition;
 
     public override void Init(PieceType type, Vector2Int position, IPlayer owner)

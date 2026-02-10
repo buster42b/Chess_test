@@ -15,6 +15,8 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
     private IPiece _selectedPiece = null;
     private bool _hasSelection = false;
 
+    [InjectOptional] private ChessSaveLoadService _saveLoadService;
+
     public ReactiveProperty<string> InteractionMessage { get; } = new ("");
     public ReactiveProperty<Color> PlayerIndicatorColor { get; } = new ();
 
@@ -140,6 +142,9 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
             // Only switch to next player if promotion is not required
             if (!_chessBoard.IsGameOver && !result.WasKingCaptured && !result.RequiresPromotion)
                 SwitchToNextPlayer();
+            
+            // Auto-save after successful move
+            _saveLoadService?.Save();
         }
         else
         {

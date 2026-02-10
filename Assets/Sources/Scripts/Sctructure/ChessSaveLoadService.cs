@@ -25,6 +25,9 @@ public class TileSaveEntry
     public int playerIndex;
     public int pieceIndex;
     public int pieceType;
+    public int startingPositionX;
+    public int startingPositionY;
+    public bool isCaptured;
 }
 
 public class ChessSaveLoadService : MonoBehaviour, IInitializable
@@ -95,25 +98,36 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
 
         var entries = new List<TileSaveEntry>();
 
-        for (int x = 0; x < _board.Width; x++)
+        // Save all pieces (both alive and captured)
+        foreach (var player in _board.Players)
         {
-            for (int y = 0; y < _board.Height; y++)
+            for (int pieceIndex = 0; pieceIndex < player.Pieces.Count; pieceIndex++)
             {
-                var tile = _board.Tiles[x, y];
-                if (tile.IsEmpty || tile.OccupiedBy.Value == null) continue;
+                var piece = player.Pieces[pieceIndex];
+                
+                // Get starting position for pieces that need it (Pawn, King, Rook)
+                Vector2Int startingPos = Vector2Int.zero;
+                if (piece is Pawn pawn)
+                    startingPos = pawn.StartingPosition;
+                else if (piece is King king)
+                    startingPos = king.StartingPosition;
+                else if (piece is Rook rook)
+                    startingPos = rook.StartingPosition;
 
-                var piece = tile.OccupiedBy.Value;
-                int playerIndex = FindPlayerIndex(piece.Owner);
-                int pieceIndex = FindPieceIndexInPlayer(piece.Owner, piece);
-                if (pieceIndex < 0) continue;
+                // For alive pieces, use their current position
+                // For captured pieces, use -1, -1 as position
+                Vector2Int position = piece.IsDead ? new Vector2Int(-1, -1) : piece.Position;
 
                 entries.Add(new TileSaveEntry
                 {
-                    x = x,
-                    y = y,
-                    playerIndex = playerIndex,
+                    x = position.x,
+                    y = position.y,
+                    playerIndex = FindPlayerIndex(player),
                     pieceIndex = pieceIndex,
-                    pieceType = (int)piece.Type
+                    pieceType = (int)piece.Type,
+                    startingPositionX = startingPos.x,
+                    startingPositionY = startingPos.y,
+                    isCaptured = piece.IsDead
                 });
             }
         }
@@ -166,6 +180,14 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         return -1;
     }
 
+    private static int CountCapturedPiecesOf(IPlayer owner, IPiece excludePiece)
+    {
+        int count = 0;
+        foreach (var p in owner.Pieces)
+            if (p != excludePiece && p.IsDead) count++;
+        return count;
+    }
+
     private GameSaveData LoadFromDisk()
     {
         if (!File.Exists(SavePath)) return null;
@@ -189,20 +211,29 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
         if (data.tiles == null) return false;
 
         int totalPieces = 0;
+        int alivePieces = 0;
         foreach (var player in _board.Players)
+        {
             totalPieces += player.Pieces.Count;
+            foreach (var piece in player.Pieces)
+                if (!piece.IsDead) alivePieces++;
+        }
+        
+        // Check if saved pieces count matches total pieces
         if (data.tiles.Length != totalPieces)
             return false;
 
         foreach (var tile in _board.TilesList)
             tile.OccupiedBy.Value = null;
 
+        // Reset all pieces first
         foreach (var player in _board.Players)
         {
             foreach (var piece in player.Pieces)
             {
                 if (piece is ChessPiece chessPiece)
                 {
+                    chessPiece.Reset();
                     chessPiece.SetPosition(new Vector2Int(-1, -1));
                     var parent = GameObject.Find($"Player {player.ID + 1} Pieces");
                     if (parent != null)
@@ -212,6 +243,7 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
             }
         }
 
+        // Restore pieces from save data
         foreach (var entry in data.tiles)
         {
             if (entry.playerIndex < 0 || entry.playerIndex >= _board.Players.Count) continue;
@@ -221,15 +253,45 @@ public class ChessSaveLoadService : MonoBehaviour, IInitializable
             var piece = player.Pieces[entry.pieceIndex];
             if ((int)piece.Type != entry.pieceType) continue;
 
-            if (entry.x < 0 || entry.x >= _board.Width || entry.y < 0 || entry.y >= _board.Height) continue;
+            // Restore starting position for pieces that need it
+            // Handle backward compatibility for old save files
+            Vector2Int startingPos = (entry.startingPositionX == 0 && entry.startingPositionY == 0) 
+                ? new Vector2Int(entry.x, entry.y)  // Default to current position for old saves
+                : new Vector2Int(entry.startingPositionX, entry.startingPositionY);
+                
+            if (piece is Pawn pawn)
+                pawn.StartingPosition = startingPos;
+            else if (piece is King king)
+                king.StartingPosition = startingPos;
+            else if (piece is Rook rook)
+                rook.StartingPosition = startingPos;
 
-            var tile = _board.Tiles[entry.x, entry.y];
-            tile.OccupiedBy.Value = piece;
-
-            if (piece is ChessPiece cp)
+            if (entry.isCaptured)
             {
-                cp.SetPosition(new Vector2Int(entry.x, entry.y));
-                cp.transform.position = _board.GetTileWorldPosition(new Vector2Int(entry.x, entry.y));
+                // Handle captured pieces
+                if (piece is ChessPiece chessPiece)
+                {
+                    chessPiece.Kill();
+                    // Move captured pieces to their captured position
+                    int capturedIndex = CountCapturedPiecesOf(player, piece);
+                    Vector3 capturedPos = _board.GetPieceWorldPosition(player, capturedIndex);
+                    chessPiece.transform.position = capturedPos;
+                }
+            }
+            else
+            {
+                // Handle alive pieces
+                if (entry.x >= 0 && entry.x < _board.Width && entry.y >= 0 && entry.y < _board.Height)
+                {
+                    var tile = _board.Tiles[entry.x, entry.y];
+                    tile.OccupiedBy.Value = piece;
+
+                    if (piece is ChessPiece cp)
+                    {
+                        cp.SetPosition(new Vector2Int(entry.x, entry.y));
+                        cp.transform.position = _board.GetTileWorldPosition(new Vector2Int(entry.x, entry.y));
+                    }
+                }
             }
         }
 

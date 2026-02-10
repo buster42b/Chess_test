@@ -9,6 +9,8 @@ public class ChessGameController
     private readonly PieceSetupController _setupController;
     private readonly IInteractionHandler _interactionHandler;
 
+    [InjectOptional] private ChessSaveLoadService _saveLoadService;
+
     public ReactiveProperty<string> GameMessage { get; } = new ("");
     public ReactiveProperty<bool> IsRestartMode { get; } = new (false);
 
@@ -59,6 +61,9 @@ public class ChessGameController
                 : "Игра окончена! Король захвачен.";
 
         LockAllPieces();
+        
+        // Auto-save after game over
+        _saveLoadService?.Save();
     }
 
     public void LockAllPieces()

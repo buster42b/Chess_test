@@ -83,16 +83,41 @@ public class ChessMoveExecutor
 
         IPiece capturedPiece = null;
         bool wasCapture = false;
-
+        Pawn pawn = piece as Pawn;
+        
         if (!targetTile.IsEmpty && targetTile.GetOccupiedPiece().Owner != piece.Owner)
         {
             capturedPiece = targetTile.GetOccupiedPiece();
             wasCapture = true;
         }
+        // Check for en passant capture
+        
+        
+        else if (targetTile.IsEmpty && pawn)
+        {
+            Vector2Int direction = new Vector2Int(0, (int)piece.Owner.VirtualDirection.z);
+            Vector2Int expectedPosition = pawn.Position + direction;
+            bool isOnCorrectRank = direction.y == 1 ? expectedPosition.y == 4 : expectedPosition.y == 3;
+            
+            if (isOnCorrectRank && Mathf.Abs(targetPosition.x - pawn.Position.x) == 1 && targetPosition.y == expectedPosition.y)
+            {
+                Vector2Int adjacentPawnPos = new Vector2Int(targetPosition.x, pawn.Position.y);
+                if (board.IsValidTilePosition(adjacentPawnPos))
+                {
+                    var adjacentTile = board.GetTile(adjacentPawnPos);
+                    if (!adjacentTile.IsEmpty && adjacentTile.GetOccupiedPiece() is Pawn enemyPawn && enemyPawn.Owner != piece.Owner)
+                    {
+                        capturedPiece = enemyPawn;
+                        wasCapture = true;
+                        Debug.Log("En passant capture detected!");
+                    }
+                }
+            }
+        }
 
         ExecuteMove(board, piece, targetPosition, wasCapture, capturedPiece);
 
-        if (piece is Pawn pawn && pawn.CanPromote)
+        if (pawn && pawn.CanPromote)
         {
             HandlePawnPromotion(board, pawn, targetPosition, onKingCaptured);
             return MoveResult.PromotionRequired(wasCapture, capturedPiece);
@@ -124,6 +149,17 @@ public class ChessMoveExecutor
                 
                 capturedChessPiece.Kill();
                 capturedChessPiece.transform.DOMove(capturedPos,.5f).SetEase(Ease.InOutQuad);
+                
+                // For en passant, remove the captured pawn from its original position
+                if (piece is Pawn && targetPosition != capturedPiece.Position)
+                {
+                    var capturedTile = board.GetTile(capturedPiece.Position);
+                    if (capturedTile.GetOccupiedPiece() == capturedPiece)
+                    {
+                        capturedTile.SetOccupiedPiece(null);
+                        Debug.Log($"En passant: Removed pawn from {capturedPiece.Position}");
+                    }
+                }
             }
         }
 
