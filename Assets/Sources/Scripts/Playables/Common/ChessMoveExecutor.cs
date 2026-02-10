@@ -1,7 +1,6 @@
 using DG.Tweening;
 using UnityEngine;
 using Zenject;
-using System;
 
 public class ChessMoveExecutor
 {
@@ -107,7 +106,6 @@ public class ChessMoveExecutor
                     {
                         capturedPiece = enemyPawn;
                         wasCapture = true;
-                        Debug.Log("En passant capture detected!");
                     }
                 }
             }
@@ -137,33 +135,20 @@ public class ChessMoveExecutor
         if (board.IsValidTilePosition(oldPosition))
             board.GetTile(oldPosition).SetOccupiedPiece(null);
 
-        if (wasCapture && capturedPiece != null)
+        if (wasCapture && capturedPiece is ChessPiece capturedChessPiece)
         {
-            if (capturedPiece is ChessPiece capturedChessPiece)
-            {
-                int capturedIndex = CountCapturedPiecesOf(capturedPiece.Owner, capturedPiece);
-                Vector3 capturedPos = board.GetPieceWorldPosition(capturedPiece.Owner, capturedIndex);
+            int capturedIndex = CountCapturedPiecesOf(capturedPiece.Owner, capturedPiece);
+            Vector3 capturedPos = board.GetPieceWorldPosition(capturedPiece.Owner, capturedIndex);
 
                 
-                capturedChessPiece.Kill();
-                capturedChessPiece.transform.DOMove(capturedPos,.5f).SetEase(Ease.InOutQuad);
+            capturedChessPiece.Kill();
+            capturedChessPiece.transform.DOMove(capturedPos,.5f).SetEase(Ease.InOutQuad);
                 
-                if (piece is Pawn && targetPosition != capturedPiece.Position)
-                {
-                    var capturedTile = board.GetTile(capturedPiece.Position);
-                    if (capturedTile.GetOccupiedPiece() == capturedPiece)
-                    {
-                        capturedTile.SetOccupiedPiece(null);
-                        Debug.Log($"En passant: Removed pawn from {capturedPiece.Position}");
-                        
-                        // Show the tile behind the pawn after en passant move
-                        Vector2Int behindPosition = new Vector2Int(targetPosition.x, targetPosition.y - (int)piece.Owner.VirtualDirection.z);
-                        if (board.IsValidTilePosition(behindPosition))
-                        {
-                            Debug.Log($"Tile behind pawn AFTER en passant move: {behindPosition}");
-                        }
-                    }
-                }
+            if (piece is Pawn && targetPosition != capturedPiece.Position)
+            {
+                var capturedTile = board.GetTile(capturedPiece.Position);
+                if (capturedTile.GetOccupiedPiece() == capturedPiece)
+                    capturedTile.SetOccupiedPiece(null);
             }
         }
 
@@ -175,6 +160,26 @@ public class ChessMoveExecutor
             chessPiece.SetPosition(targetPosition);
             Vector3 targetWorldPosition = board.GetTileWorldPosition(targetPosition);
             chessPiece.transform.DOMove(targetWorldPosition, .5f).SetEase(Ease.InOutQuad);
+        }
+
+        if (piece is not King king || Mathf.Abs(targetPosition.x - oldPosition.x) != 2) return;
+        bool isKingside = targetPosition.x > oldPosition.x;
+        Vector2Int rookFromPos = isKingside ? new Vector2Int(7, oldPosition.y) : new Vector2Int(0, oldPosition.y);
+        Vector2Int rookToPos = isKingside ? new Vector2Int(targetPosition.x - 1, targetPosition.y) : new Vector2Int(targetPosition.x + 1, targetPosition.y);
+
+        if (!board.IsValidTilePosition(rookFromPos)) return;
+        var rookTile = board.GetTile(rookFromPos);
+        if (rookTile.IsEmpty || rookTile.GetOccupiedPiece() is not Rook rook) return;
+        rookTile.SetOccupiedPiece(null);
+                    
+        var rookTargetTile = board.GetTile(rookToPos);
+        rookTargetTile.SetOccupiedPiece(rook);
+                    
+        if (rook is ChessPiece rookChessPiece)
+        {
+            rookChessPiece.SetPosition(rookToPos);
+            Vector3 rookTargetWorldPos = board.GetTileWorldPosition(rookToPos);
+            rookChessPiece.transform.DOMove(rookTargetWorldPos, .5f).SetEase(Ease.InOutQuad);
         }
     }
 
