@@ -10,7 +10,7 @@ public class ChessInteractionHandler: MonoBehaviour, IInteractionHandler
 
     protected Camera _mainCamera;
     protected IBoard _chessBoard;
-    private InputAction _clickAction;
+    protected InputAction _clickAction;
     private PieceSetupController _setupController;
     private IPiece _selectedPiece = null;
     private bool _hasSelection = false;
@@ -129,7 +129,7 @@ public class ChessInteractionHandler: MonoBehaviour, IInteractionHandler
         HighlightPiece(piece, true);
     }
  
-    protected void TryMoveSelectedPiece(Vector2Int targetTile)
+    protected virtual void TryMoveSelectedPiece(Vector2Int targetTile)
     {
         if (_selectedPiece == null || !_hasSelection) return;
  

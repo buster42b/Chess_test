@@ -5,7 +5,6 @@ using Zenject;
 
 public class ChessInteractionHandlerExtended : ChessInteractionHandler
 {
-    [SerializeField] private float dragActivationTime = .3f;
     [SerializeField] private float mouseDeltaTolerance = 5f;
     private InputAction _positionAction;
     private ChessPiece _draggedPiece = null;
@@ -14,8 +13,6 @@ public class ChessInteractionHandlerExtended : ChessInteractionHandler
     private Vector3 _dragOffset;
     private float _dragHeight = 0.5f;
     private Vector2 _dragStartPos;
-    private float _dragStartTime;
-    private InputAction _clickAction;
     
     private PieceSetupController _setupController;
 
@@ -24,7 +21,6 @@ public class ChessInteractionHandlerExtended : ChessInteractionHandler
         _mainCamera = Camera.main;
         _chessBoard = board;
         
-        // Create our own click action that subscribes to all phases
         _clickAction = new InputAction("Click");
         _clickAction.AddBinding("<Mouse>/leftButton");
         _clickAction.started += OnSelection;
@@ -59,7 +55,6 @@ public class ChessInteractionHandlerExtended : ChessInteractionHandler
     private void StartDragDetection()
     {
         _dragStartPos = Mouse.current.position.ReadValue();
-        _dragStartTime = Time.time;
         _dragStarted = true;
         
         Vector2 mousePos = Mouse.current.position.ReadValue();
@@ -122,12 +117,10 @@ public class ChessInteractionHandlerExtended : ChessInteractionHandler
 
     private void ReturnPieceToOriginalPosition()
     {
-        if (_draggedPiece != null)
-        {
-            Vector3 originalPos = _chessBoard.GetTileWorldPosition(_draggedPiece.Position);
-            _draggedPiece.transform.position = originalPos;
-            ClearSelection();
-        }
+        if (_draggedPiece == null) return;
+        Vector3 originalPos = _chessBoard.GetTileWorldPosition(_draggedPiece.Position);
+        _draggedPiece.transform.position = originalPos;
+        ClearSelection();
     }
 
     private void Update()
@@ -136,7 +129,6 @@ public class ChessInteractionHandlerExtended : ChessInteractionHandler
         {
             Vector2 currentMousePos = Mouse.current.position.ReadValue();
             float mouseDelta = Vector2.Distance(currentMousePos, _dragStartPos);
-            Debug.Log(mouseDelta);
             if (mouseDelta > mouseDeltaTolerance)
             {
                 _isDragging = true;
@@ -147,30 +139,28 @@ public class ChessInteractionHandlerExtended : ChessInteractionHandler
                 _draggedPiece.transform.position = new Vector3(pieceWorldPos.x, pieceWorldPos.y + _dragHeight, pieceWorldPos.z);
             }
         }
-        
-        if (_isDragging && _draggedPiece != null)
-        {
-            Vector2 mousePos = _positionAction.ReadValue<Vector2>();
-            Ray ray = _mainCamera.ScreenPointToRay(mousePos);
+
+        if (!_isDragging || _draggedPiece == null) return;
+        Vector2 mousePos = _positionAction.ReadValue<Vector2>();
+        Ray ray = _mainCamera.ScreenPointToRay(mousePos);
             
-            RaycastHit boardHit;
-            if (Physics.Raycast(ray, out boardHit, Mathf.Infinity, boardLayer))
-            {
-                Vector3 targetPos = boardHit.point;
-                targetPos.y = _draggedPiece.transform.position.y;
-                _draggedPiece.transform.position = targetPos;
-            }
-            else
-            {
-                Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, _draggedPiece.transform.position.z));
-                Vector3 targetPos = mouseWorldPos + _dragOffset;
-                targetPos.y = _draggedPiece.transform.position.y;
-                _draggedPiece.transform.position = targetPos;
-            }
+        RaycastHit boardHit;
+        if (Physics.Raycast(ray, out boardHit, Mathf.Infinity, boardLayer))
+        {
+            Vector3 targetPos = boardHit.point;
+            targetPos.y = _draggedPiece.transform.position.y;
+            _draggedPiece.transform.position = targetPos;
+        }
+        else
+        {
+            Vector3 mouseWorldPos = _mainCamera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, _draggedPiece.transform.position.z));
+            Vector3 targetPos = mouseWorldPos + _dragOffset;
+            targetPos.y = _draggedPiece.transform.position.y;
+            _draggedPiece.transform.position = targetPos;
         }
     }
 
-    private void TryMoveSelectedPiece(Vector2Int targetTile)
+    protected override void TryMoveSelectedPiece(Vector2Int targetTile)
     {
         if (_draggedPiece == null || !_isDragging) 
         {
