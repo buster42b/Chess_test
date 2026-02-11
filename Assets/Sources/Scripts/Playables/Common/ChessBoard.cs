@@ -22,7 +22,7 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
     private List<IPlayer> _playersInternal;
 
     [Inject] private DiContainer _container;
-    [Inject] private IInteractionHandler _clickHandler;
+    [Inject] private IInteractionHandler _interactionHandler;
 
     private ChessMoveExecutor _moveExecutor;
     private PieceSetupController _setupController;
@@ -47,8 +47,8 @@ public class ChessBoard : MonoBehaviour, IBoard, IInitializable
         InitializeVirtualTiles();
         InitPlayers(2);
 
-        _clickHandler?.Initialize(this);
-        if (_clickHandler is ChessClickHandler chessClickHandler)
+        _interactionHandler?.Initialize(this);
+        if (_interactionHandler is ChessInteractionHandler chessClickHandler)
         {
             if (_setupController != null)
                 chessClickHandler.SetSetupController(_setupController);

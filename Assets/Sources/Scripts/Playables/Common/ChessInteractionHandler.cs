@@ -3,14 +3,14 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
 
-public class ChessClickHandler: MonoBehaviour, IInteractionHandler
+public class ChessInteractionHandler: MonoBehaviour, IInteractionHandler
 {
-    [SerializeField] private LayerMask boardLayer = 1 << 0;
-    [SerializeField] private LayerMask pieceLayer = 1 << 6;
+    [SerializeField] protected LayerMask boardLayer = 1 << 0;
+    [SerializeField] protected LayerMask pieceLayer = 1 << 0;
 
-    private Camera _mainCamera;
+    protected Camera _mainCamera;
+    protected IBoard _chessBoard;
     private InputAction _clickAction;
-    private IBoard _chessBoard;
     private PieceSetupController _setupController;
     private IPiece _selectedPiece = null;
     private bool _hasSelection = false;
@@ -20,7 +20,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
     public ReactiveProperty<string> InteractionMessage { get; } = new ("");
     public ReactiveProperty<Color> PlayerIndicatorColor { get; } = new ();
 
-    public void Initialize(IBoard board)
+    public virtual void Initialize(IBoard board)
     {
         _mainCamera = Camera.main;
         _chessBoard = board;
@@ -36,7 +36,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
     }
 
  
-    public void OnSelection(InputAction.CallbackContext context)
+    public virtual void OnSelection(InputAction.CallbackContext context)
     {
         if (context.phase != InputActionPhase.Performed) return;
         if (_mainCamera == null || _chessBoard == null || _chessBoard.IsGameOver) return;
@@ -73,7 +73,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         }
     }
  
-    private void HandlePieceSelection(ChessPiece piece)
+    protected void HandlePieceSelection(ChessPiece piece)
     {
         if (_chessBoard.IsGameOver) return;
         if (piece.IsDead) return;
@@ -104,7 +104,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         }
     }
  
-    private void HandleTileSelection(Vector2Int tilePos)
+    protected void HandleTileSelection(Vector2Int tilePos)
     {
         if (_chessBoard.IsGameOver) return;
  
@@ -117,7 +117,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         _chessBoard.HandleTileClick(tilePos);
     }
  
-    private void SelectPiece(ChessPiece piece)
+    protected void SelectPiece(ChessPiece piece)
     {
         ClearSelection();
  
@@ -129,7 +129,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         HighlightPiece(piece, true);
     }
  
-    private void TryMoveSelectedPiece(Vector2Int targetTile)
+    protected void TryMoveSelectedPiece(Vector2Int targetTile)
     {
         if (_selectedPiece == null || !_hasSelection) return;
  
@@ -192,7 +192,7 @@ public class ChessClickHandler: MonoBehaviour, IInteractionHandler
         PlayerIndicatorColor.Value = _chessBoard.CurrentPlayer.Value.Color;
     }
  
-    void OnDestroy()
+    protected virtual void OnDestroy()
     {
         if (_clickAction != null)
         {

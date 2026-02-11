@@ -6,7 +6,7 @@ public class ChessInstaller : MonoInstaller
     [SerializeField] private GameObject chessBoardPrefab;
     [SerializeField] private ChessPiecesConfig piecesConfig;
     [SerializeField] private ChessUIManager uiPrefab;
-    [SerializeField] private ChessClickHandler sceneInteractionHandler;
+    [SerializeField] private ChessInteractionHandler sceneInteractionHandler;
     [SerializeField] private PromotionUIManager promotionUIPrefab;
 
     public override void InstallBindings()
@@ -20,7 +20,7 @@ public class ChessInstaller : MonoInstaller
 
         Container.Bind<ChessMoveExecutor>().AsSingle();
         Container.Bind<PieceSetupController>().AsSingle();
-        Container.Bind<ChessClickHandler>().AsSingle();
+        Container.Bind<ChessInteractionHandler>().AsSingle();
 
         Container.Bind<ChessPieceFactory>()
             .AsSingle()

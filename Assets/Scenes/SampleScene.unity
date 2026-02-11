@@ -199,7 +199,7 @@ MonoBehaviour:
   chessBoardPrefab: {fileID: 166942, guid: 31270e9f38d5e7a448ae050b9633fce3, type: 3}
   piecesConfig: {fileID: 11400000, guid: 01b828d7bd2a4c34a89623e01eea730d, type: 2}
   uiPrefab: {fileID: 3741855809726006469, guid: 035bc6ba5f6513b41a98efc1925539d7, type: 3}
-  sceneInteractionHandler: {fileID: 1440077864}
+  sceneInteractionHandler: {fileID: 339602909}
   promotionUIPrefab: {fileID: 2151759074203979331, guid: c057261a08747d24582dc62ce16ca222, type: 3}
 --- !u!1 &330585543
 GameObject:
@@ -338,7 +338,7 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!1 &407050179
+--- !u!1 &339602908
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -346,8 +346,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 407050180}
-  - component: {fileID: 407050181}
+  - component: {fileID: 339602910}
+  - component: {fileID: 339602909}
   m_Layer: 0
   m_Name: DragHandler
   m_TagString: Untagged
@@ -355,13 +355,33 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &407050180
+--- !u!114 &339602909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 339602908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cecdbe91ff8a7db409034420656bd2d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChessInteractionHandlerExtended
+  boardLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  pieceLayer:
+    serializedVersion: 2
+    m_Bits: 65
+  dragActivationTime: 0.25
+  mouseDeltaTolerance: 0.1
+--- !u!4 &339602910
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 407050179}
+  m_GameObject: {fileID: 339602908}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.53361, y: 0, z: -2.84403}
@@ -370,47 +390,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &407050181
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 407050179}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edc794ce760051d49ad9339101b0aabe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChessDragHandler
-  boardLayer:
-    m_Bits: 1
-  pieceLayer:
-    m_Bits: 1
-  dragThreshold: 0.1
-  _mainCamera: {fileID: 0}
-  _pressAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: a9050ab3-e7cd-4375-b45c-f755477d78fa
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  _releaseAction:
-    m_Name: 
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 85e9e772-8f46-4ea1-a422-0eb802ebeaa6
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings: []
-    m_Flags: 0
-  _isDragging: 0
-  _pressStartTime: 0
-  _originalPiecePosition: {x: 0, y: 0, z: 0}
-  _hasSelection: 0
-  _saveLoadService: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -778,5 +757,5 @@ SceneRoots:
   - {fileID: 193289543}
   - {fileID: 587813033}
   - {fileID: 1440077863}
-  - {fileID: 407050180}
+  - {fileID: 339602910}
   - {fileID: 804174842}
