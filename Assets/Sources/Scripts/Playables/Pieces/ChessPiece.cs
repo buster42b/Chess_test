@@ -11,6 +11,9 @@ public class ChessPiece : MonoBehaviour, IPiece
     public IPlayer Owner { get; private set; }
     [field: SerializeField]public virtual PieceType Type { get; private set; }
     public bool Promoted { get; set; }
+ 
+    private bool _isFalling = false;
+    private ChessInteractionHandlerExtended _interactionHandler;
     public virtual void Init(PieceType type, Vector2Int position, IPlayer owner)
     {
         Type = type;
@@ -49,5 +52,35 @@ public class ChessPiece : MonoBehaviour, IPiece
     public void Reset()
     {
         _isDead = false;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (_isFalling) return;
+        
+        ChessPiece otherPiece = collision.gameObject.GetComponent<ChessPiece>();
+        if (otherPiece != null && otherPiece.Owner != Owner && !_isDead && !otherPiece.IsDead)
+        {
+            if (_interactionHandler != null)
+            {
+                _interactionHandler.HandleCollisionCapture(this, otherPiece);
+            }
+        }
+    }
+
+    public void SetInteractionHandler(ChessInteractionHandlerExtended handler)
+    {
+        _interactionHandler = handler;
+    }
+
+    private void Update()
+    {
+        if (_isFalling)
+        {
+            if (transform.position.y < -5f)
+            {
+                gameObject.SetActive(false);
+            }
+        }
     }
 }

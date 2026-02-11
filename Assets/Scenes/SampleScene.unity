@@ -259,7 +259,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 10
+  near clip plane: 0.5
   far clip plane: 50
   field of view: 60
   orthographic: 0
@@ -373,8 +373,8 @@ MonoBehaviour:
   pieceLayer:
     serializedVersion: 2
     m_Bits: 65
-  dragActivationTime: 0.25
   mouseDeltaTolerance: 0.1
+  moveSpeed: 10
 --- !u!4 &339602910
 Transform:
   m_ObjectHideFlags: 0

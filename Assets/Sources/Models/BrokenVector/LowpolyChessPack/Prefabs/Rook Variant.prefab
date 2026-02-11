@@ -8,17 +8,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -2708575615043105923, guid: 9f1529ef24fef504baacf24d52496bc0, type: 3}
+      propertyPath: m_UseGravity
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2298199158748661714, guid: 9f1529ef24fef504baacf24d52496bc0, type: 3}
       propertyPath: m_Name
       value: Rook Variant
       objectReference: {fileID: 0}
     - target: {fileID: 4395356336797212517, guid: 9f1529ef24fef504baacf24d52496bc0, type: 3}
       propertyPath: m_Height
-      value: 1.7126937
+      value: 1.9182898
+      objectReference: {fileID: 0}
+    - target: {fileID: 4395356336797212517, guid: 9f1529ef24fef504baacf24d52496bc0, type: 3}
+      propertyPath: m_Radius
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4395356336797212517, guid: 9f1529ef24fef504baacf24d52496bc0, type: 3}
       propertyPath: m_Center.y
-      value: 0.83134675
+      value: 0.9341448
       objectReference: {fileID: 0}
     - target: {fileID: 4619566243300735756, guid: 9f1529ef24fef504baacf24d52496bc0, type: 3}
       propertyPath: m_LocalPosition.x

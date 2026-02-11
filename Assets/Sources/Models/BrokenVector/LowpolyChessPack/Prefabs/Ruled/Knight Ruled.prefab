@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7779469470542582676, guid: 578f709a411aa0f46bc2eac1ecd4cc85, type: 3}
       propertyPath: m_Name
-      value: Knight Variant Variant
+      value: Knight Ruled
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 729403589407111534, guid: 578f709a411aa0f46bc2eac1ecd4cc85, type: 3}
@@ -60,6 +60,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7779469470542582676, guid: 578f709a411aa0f46bc2eac1ecd4cc85, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5168522719111610177}
+    - targetCorrespondingSourceObject: {fileID: 7779469470542582676, guid: 578f709a411aa0f46bc2eac1ecd4cc85, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -2437014660747791007}
   m_SourcePrefab: {fileID: 100100000, guid: 578f709a411aa0f46bc2eac1ecd4cc85, type: 3}
 --- !u!1 &6200534979567110146 stripped
 GameObject:
@@ -79,3 +82,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Knight
   <Type>k__BackingField: 0
+--- !u!54 &-2437014660747791007
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6200534979567110146}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3

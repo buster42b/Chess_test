@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2958626102410764828}
   - component: {fileID: 7610513709897376890}
   - component: {fileID: 8959193309490555325}
+  - component: {fileID: 2315370174621895010}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -107,7 +108,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChessBoard
   <Width>k__BackingField: 8
   <Height>k__BackingField: 8
-  _clickHandler: {fileID: 0}
   _boardRenderer: {fileID: 8959193309490555325}
   tileSize: 1.5
 --- !u!65 &7610513709897376890
@@ -145,3 +145,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChessBoardRenderer
   boardTransform: {fileID: 487252}
   borderWidth: 1.3
+--- !u!54 &2315370174621895010
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166942}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

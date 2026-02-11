@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6303895058813911623, guid: 4e4199a44319e8b4794b02776a389cb9, type: 3}
       propertyPath: m_Name
-      value: Queen Variant Variant
+      value: Queen Ruled
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3932357016489502909, guid: 4e4199a44319e8b4794b02776a389cb9, type: 3}
@@ -60,6 +60,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6303895058813911623, guid: 4e4199a44319e8b4794b02776a389cb9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5302171151244701117}
+    - targetCorrespondingSourceObject: {fileID: 6303895058813911623, guid: 4e4199a44319e8b4794b02776a389cb9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -3092864972428719643}
   m_SourcePrefab: {fileID: 100100000, guid: 4e4199a44319e8b4794b02776a389cb9, type: 3}
 --- !u!1 &8118263901444064687 stripped
 GameObject:
@@ -79,3 +82,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Queen
   <Type>k__BackingField: 0
+--- !u!54 &-3092864972428719643
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8118263901444064687}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3

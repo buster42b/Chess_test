@@ -119,6 +119,8 @@ public class ChessMoveExecutor
                 
             capturedChessPiece.Kill();
             capturedChessPiece.transform.DOMove(capturedPos,.5f).SetEase(Ease.InOutQuad);
+            // Reset rotation to zero when moving to captured pieces row
+            capturedChessPiece.transform.DORotate(Vector3.zero, 0.5f).SetEase(Ease.InOutQuad);
                 
             if (piece is Pawn && targetPosition != capturedPiece.Position)
             {

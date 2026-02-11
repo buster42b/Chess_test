@@ -50,7 +50,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7644258864329945107, guid: 9cd7bd8d8372b294389d1a7c0669ba69, type: 3}
       propertyPath: m_Name
-      value: Pawn Variant Variant
+      value: Pawn Ruled
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 863769843133504233, guid: 9cd7bd8d8372b294389d1a7c0669ba69, type: 3}
@@ -60,6 +60,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7644258864329945107, guid: 9cd7bd8d8372b294389d1a7c0669ba69, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1602973652100463141}
+    - targetCorrespondingSourceObject: {fileID: 7644258864329945107, guid: 9cd7bd8d8372b294389d1a7c0669ba69, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5212212353105430970}
   m_SourcePrefab: {fileID: 100100000, guid: 9cd7bd8d8372b294389d1a7c0669ba69, type: 3}
 --- !u!1 &3206067405552519873 stripped
 GameObject:
@@ -79,3 +82,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pawn
   <Type>k__BackingField: 0
+  fallSpeed: 5
+  fallRotationSpeed: 180
+--- !u!54 &-5212212353105430970
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3206067405552519873}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 3
