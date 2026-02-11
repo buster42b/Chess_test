@@ -30,23 +30,20 @@ public class ChessGameController
         _board.SetGameOver(false);
         EnableAllPieces();
 
-        // Convert promoted pieces back to pawns
         ConvertPromotedPiecesBackToPawns();
 
-        // Un-capture all pieces and place them at starting positions
         foreach (var player in _board.Players)
         {
             foreach (var piece in player.Pieces)
             {
                 if (piece is ChessPiece chessPiece)
                 {
-                    chessPiece.Reset(); // Make piece alive again
+                    chessPiece.Reset();
                     chessPiece.gameObject.SetActive(true);
                     var renderer = chessPiece.GetComponent<Renderer>();
                     if (renderer != null)
                         renderer.material.color = player.Color;
 
-                    // Get starting position for pieces that need it
                     Vector2Int startingPos = Vector2Int.zero;
                     if (piece is Pawn pawn)
                         startingPos = pawn.StartingPosition;
@@ -56,16 +53,11 @@ public class ChessGameController
                         startingPos = rook.StartingPosition;
                     else
                     {
-                        // For other pieces, use their current position as starting position
                         startingPos = piece.Position;
                         if (startingPos.x == -1 || startingPos.y == -1)
-                        {
-                            // If position is invalid, don't place on board
                             continue;
-                        }
                     }
 
-                    // Place piece at starting position
                     if (startingPos.x >= 0 && startingPos.x < _board.Width && 
                         startingPos.y >= 0 && startingPos.y < _board.Height)
                     {
@@ -99,7 +91,6 @@ public class ChessGameController
 
         LockAllPieces();
         
-        // Auto-save after game over
         _saveLoadService?.Save();
     }
 
@@ -123,7 +114,6 @@ public class ChessGameController
     {
         var piecesToReplace = new List<(ChessPiece promotedPiece, IPlayer owner, Vector2Int position)>();
 
-        // Find all promoted pieces
         foreach (var player in _board.Players)
         {
             foreach (var piece in player.Pieces)
@@ -135,13 +125,10 @@ public class ChessGameController
             }
         }
 
-        // Replace each promoted piece with a pawn
         foreach (var (promotedPiece, owner, position) in piecesToReplace)
         {
-            // Remove the promoted piece from player and board
             owner.RemovePiece(promotedPiece);
             
-            // Clear the tile if the piece was on the board
             if (position.x >= 0 && position.x < _board.Width && 
                 position.y >= 0 && position.y < _board.Height)
             {
@@ -150,14 +137,11 @@ public class ChessGameController
                     tile.OccupiedBy.Value = null;
             }
 
-            // Create a new pawn
             var newPawn = _pieceFactory.CreatePiece(PieceType.Pawn, position, owner);
-            newPawn.Promoted = false; // Ensure the new pawn is not marked as promoted
+            newPawn.Promoted = false;
             
-            // Add the pawn to the player
             owner.AddPiece(newPawn);
 
-            // Place the pawn on the board if position is valid
             if (position.x >= 0 && position.x < _board.Width && 
                 position.y >= 0 && position.y < _board.Height)
             {
@@ -165,7 +149,6 @@ public class ChessGameController
                 tile.OccupiedBy.Value = newPawn;
             }
 
-            // Destroy the promoted piece GameObject
             GameObject.Destroy(promotedPiece.gameObject);
         }
     }
