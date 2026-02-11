@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
@@ -6,6 +7,9 @@ public class CameraController : MonoBehaviour
 {
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 2f;
+
+    [SerializeField] private float minVerticalAngle = 0;
+    [SerializeField] private float maxVerticalAngle = 90;
     
     [Header("Zoom Settings")]
     [SerializeField] private float zoomSpeed = 5f;
@@ -63,37 +67,37 @@ public class CameraController : MonoBehaviour
     {
         _isRotating = false;
     }
-    
+
     private void OnScroll(InputAction.CallbackContext context)
     {
         Vector2 scrollValue = context.ReadValue<Vector2>();
         float zoomAmount = scrollValue.y * zoomSpeed * 0.1f;
         cameraTransform.Translate(Vector3.forward * zoomAmount);
-        
+
         float currentDistance = Vector3.Distance(transform.position, cameraTransform.position);
+        
         if (currentDistance < minDistance)
-        {
             cameraTransform.position = transform.position - cameraTransform.forward * minDistance;
-        }
         else if (currentDistance > maxDistance)
-        {
             cameraTransform.position = transform.position - cameraTransform.forward * maxDistance;
-        }
     }
-    
+
     private void Update()
     {
-        if (_isRotating)
-        {
-            Vector2 currentMousePosition = _mousePositionAction.ReadValue<Vector2>();
-            Vector2 mouseDelta = currentMousePosition - _lastMousePosition;
+        if (!_isRotating) return;
+        Vector2 currentMousePosition = _mousePositionAction.ReadValue<Vector2>();
+        Vector2 mouseDelta = currentMousePosition - _lastMousePosition;
             
-            float horizontalRotation = mouseDelta.x * rotationSpeed;
-            
-            transform.Rotate(Vector3.up, horizontalRotation, Space.World);
-            
-            _lastMousePosition = currentMousePosition;
-        }
+        float horizontalRotation = mouseDelta.x * rotationSpeed;
+        float verticalRotation = mouseDelta.y * rotationSpeed;
+
+        transform.Rotate(Vector3.up, horizontalRotation, Space.World);
+        
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.x = Mathf.Clamp(currentRotation.x + verticalRotation, minVerticalAngle, maxVerticalAngle);
+        transform.eulerAngles = currentRotation;
+
+        _lastMousePosition = currentMousePosition;
     }
     
     

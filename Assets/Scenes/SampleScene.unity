@@ -574,6 +574,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
   rotationSpeed: 2
+  minVerticalAngle: 0
+  maxVerticalAngle: 60
   zoomSpeed: 5
   minDistance: 2
   maxDistance: 20
