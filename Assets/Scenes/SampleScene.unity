@@ -199,7 +199,7 @@ MonoBehaviour:
   chessBoardPrefab: {fileID: 166942, guid: 31270e9f38d5e7a448ae050b9633fce3, type: 3}
   piecesConfig: {fileID: 11400000, guid: 01b828d7bd2a4c34a89623e01eea730d, type: 2}
   uiPrefab: {fileID: 3741855809726006469, guid: 035bc6ba5f6513b41a98efc1925539d7, type: 3}
-  sceneInteractionHandler: {fileID: 1440077862}
+  sceneInteractionHandler: {fileID: 1440077864}
   promotionUIPrefab: {fileID: 2151759074203979331, guid: c057261a08747d24582dc62ce16ca222, type: 3}
 --- !u!1 &330585543
 GameObject:
@@ -259,8 +259,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 10
+  far clip plane: 50
   field of view: 60
   orthographic: 0
   orthographic size: 6.08
@@ -287,8 +287,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.8660254, z: -0.5, w: 0}
-  m_LocalPosition: {x: 0, y: 18.7, z: 11.93}
+  m_LocalRotation: {x: -0, y: 0.6087615, z: -0.7933533, w: 0}
+  m_LocalPosition: {x: 0, y: 21.658682, z: -4.787113}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -338,6 +338,79 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &407050179
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 407050180}
+  - component: {fileID: 407050181}
+  m_Layer: 0
+  m_Name: DragHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &407050180
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 407050179}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.53361, y: 0, z: -2.84403}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &407050181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 407050179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: edc794ce760051d49ad9339101b0aabe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChessDragHandler
+  boardLayer:
+    m_Bits: 1
+  pieceLayer:
+    m_Bits: 1
+  dragThreshold: 0.1
+  _mainCamera: {fileID: 0}
+  _pressAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: a9050ab3-e7cd-4375-b45c-f755477d78fa
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  _releaseAction:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 85e9e772-8f46-4ea1-a422-0eb802ebeaa6
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  _isDragging: 0
+  _pressStartTime: 0
+  _originalPiecePosition: {x: 0, y: 0, z: 0}
+  _hasSelection: 0
+  _saveLoadService: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,9 +646,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 824a7f0f552f6024d98847eeba247490, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraController
-  rotationSpeed: 2
-  minVerticalAngle: 0
-  maxVerticalAngle: 60
+  rotationSpeed: 1
+  minVerticalAngle: 15
+  maxVerticalAngle: 75
+  invertVerticalRotation: 1
   zoomSpeed: 5
   minDistance: 2
   maxDistance: 20
@@ -588,14 +662,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 804174840}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 330585546}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -654,15 +728,30 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1440077863}
-  - component: {fileID: 1440077862}
+  - component: {fileID: 1440077864}
   m_Layer: 0
-  m_Name: InteractionHandler
+  m_Name: ClickHandler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1440077862
+--- !u!4 &1440077863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1440077861}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.53361, y: 0, z: -2.84403}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1440077864
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -680,21 +769,6 @@ MonoBehaviour:
   pieceLayer:
     serializedVersion: 2
     m_Bits: 65
---- !u!4 &1440077863
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1440077861}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.53361, y: 0, z: -2.84403}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -704,4 +778,5 @@ SceneRoots:
   - {fileID: 193289543}
   - {fileID: 587813033}
   - {fileID: 1440077863}
+  - {fileID: 407050180}
   - {fileID: 804174842}

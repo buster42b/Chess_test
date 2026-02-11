@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
@@ -7,9 +6,9 @@ public class CameraController : MonoBehaviour
 {
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 2f;
-
-    [SerializeField] private float minVerticalAngle = 0;
-    [SerializeField] private float maxVerticalAngle = 90;
+    [SerializeField] private float minVerticalAngle = 30f;
+    [SerializeField] private float maxVerticalAngle = 60f;
+    [SerializeField] private bool invertVerticalRotation = false;
     
     [Header("Zoom Settings")]
     [SerializeField] private float zoomSpeed = 5f;
@@ -90,13 +89,14 @@ public class CameraController : MonoBehaviour
             
         float horizontalRotation = mouseDelta.x * rotationSpeed;
         float verticalRotation = mouseDelta.y * rotationSpeed;
-
-        transform.Rotate(Vector3.up, horizontalRotation, Space.World);
         
+        if (invertVerticalRotation)
+            verticalRotation = -verticalRotation;
+            
+        transform.Rotate(Vector3.up, horizontalRotation, Space.World);
         Vector3 currentRotation = transform.eulerAngles;
-        currentRotation.x = Mathf.Clamp(currentRotation.x + verticalRotation, minVerticalAngle, maxVerticalAngle);
-        transform.eulerAngles = currentRotation;
-
+        currentRotation.x = Mathf.Clamp(currentRotation.x - verticalRotation, minVerticalAngle, maxVerticalAngle);
+        transform.eulerAngles = currentRotation;  
         _lastMousePosition = currentMousePosition;
     }
     
